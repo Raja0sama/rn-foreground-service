@@ -3,6 +3,7 @@
   "version": "1.0.4",
   "description": "A Foreground Service for React Native",
   "main": "index.js",
+  "repository": "Raja0sama/rn-foreground-service",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
