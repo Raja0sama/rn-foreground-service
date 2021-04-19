@@ -176,4 +176,4 @@ ReactNativeForegroundService.start({
 
 ## License
 
-MIT © [rajaosama](https://github.com/rajaosama)
+MIT © [rajaosama](https://github.com/raja0sama)
