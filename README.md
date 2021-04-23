@@ -101,11 +101,15 @@ public class MainActivity extends ReactActivity {
     // know which button from notification or the notification button is clicked
     String  main = getIntent().getStringExtra("mainOnPress");
     String  btn = getIntent().getStringExtra("buttonOnPress");
+    String  btn2 = getIntent().getStringExtra("button2OnPress");
     WritableMap  map = Arguments.createMap();
     if (main != null) {
         map.putString("main", main);
     }
     if (btn != null) {
+        map.putString("button", btn);
+    }
+    if (btn2 != null) {
         map.putString("button", btn);
     }
     try {
@@ -141,10 +145,10 @@ index.js
 
 ```js
 // Import the library
-import ReactNativeForegroundService from "@supersami/rn-foreground-service";
-import { AppRegistry } from "react-native";
-import { name as appName } from "./app.json";
-import App from "./src/App.tsx";
+import ReactNativeForegroundService from '@supersami/rn-foreground-service';
+import { AppRegistry } from 'react-native';
+import { name as appName } from './app.json';
+import App from './src/App.tsx';
 
 // Register the service
 ReactNativeForegroundService.register();
@@ -154,10 +158,10 @@ AppRegistry.registerComponent(appName, () => App);
 ### Add a Task
 
 ```js
-ReactNativeForegroundService.add_task(() => console.log("I am Being Tested"), {
+ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
   delay: 100,
   onLoop: true,
-  taskId: "taskid",
+  taskId: 'taskid',
   onError: (e) => console.log(`Error logging:`, e),
 });
 ```
@@ -167,8 +171,8 @@ ReactNativeForegroundService.add_task(() => console.log("I am Being Tested"), {
 ```js
 ReactNativeForegroundService.start({
   id: 144,
-  title: "Foreground Service",
-  message: "you are online!",
+  title: 'Foreground Service',
+  message: 'you are online!',
 });
 ```
 
