@@ -24,6 +24,7 @@ class NotificationHelper {
     private NotificationManager mNotificationManager;
 
     PendingIntent pendingBtnIntent;
+    PendingIntent pendingBtn2Intent;
     private Context context;
     private NotificationConfig config;
 
@@ -64,6 +65,14 @@ class NotificationHelper {
             notificationBtnIntent.putExtra("buttonOnPress", bundle.getString("buttonOnPress"));
             int uniqueInt = (int) (System.currentTimeMillis() & 0xfffffff);
             pendingBtnIntent = PendingIntent.getActivity(context, uniqueInt, notificationBtnIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+
+        if(bundle.getBoolean("button2", false) == true) {
+            Log.i("SuperLog C ", "inButton2OnPress" + bundle.getString("button2OnPress"));
+            Intent notificationBtn2Intent = new Intent(context, mainActivityClass);
+            notificationBtn2Intent.putExtra("button2OnPress", bundle.getString("button2OnPress"));
+            int uniqueInt2 = (int) (System.currentTimeMillis() & 0xfffffff);
+            pendingBtn2Intent = PendingIntent.getActivity(context, uniqueInt2, notificationBtn2Intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
         String title = bundle.getString("title");
@@ -121,9 +130,14 @@ class NotificationHelper {
             .setContentIntent(pendingIntent)
             .setOngoing(bundle.getBoolean("ongoing", false))
             .setContentText(bundle.getString("message"));
-       if(bundle.getBoolean("button", false) == true){
-           notificationBuilder.addAction(R.drawable.redbox_top_border_background, bundle.getString("buttonText", "Button"), pendingBtnIntent);
-       }
+            
+        if(bundle.getBoolean("button", false) == true){
+            notificationBuilder.addAction(R.drawable.redbox_top_border_background, bundle.getString("buttonText", "Button"), pendingBtnIntent);
+        }
+
+        if(bundle.getBoolean("button2", false) == true){
+            notificationBuilder.addAction(R.drawable.redbox_top_border_background, bundle.getString("button2Text", "Button"), pendingBtn2Intent);
+        }
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
