@@ -1,5 +1,4 @@
-
-import {NativeModules, AppRegistry} from 'react-native';
+import { NativeModules, AppRegistry } from 'react-native';
 
 // ANDROID ONLY
 // Copied and adapted from https://github.com/voximplant/react-native-foreground-service
@@ -18,133 +17,122 @@ const ForegroundServiceModule = NativeModules.ForegroundService;
  * @property {boolean} ongoing - true/false if the notification is ongoing. The notification the service was started with will always be ongoing
  * @property {number} [importance] - Importance (and priority for older devices) of this notification. This might affect notification sound One of:
  *                                  none - IMPORTANCE_NONE (by default),
-    *                               min - IMPORTANCE_MIN,
-    *                               low - IMPORTANCE_LOW,
-    *                               default - IMPORTANCE_DEFAULT
-    *                               high - IMPORTANCE_HIGH,
-    *                               max - IMPORTANCE_MAX
+ *                               min - IMPORTANCE_MIN,
+ *                               low - IMPORTANCE_LOW,
+ *                               default - IMPORTANCE_DEFAULT
+ *                               high - IMPORTANCE_HIGH,
+ *                               max - IMPORTANCE_MAX
  */
-const NotificationConfig = {
-
-};
+const NotificationConfig = {};
 
 /**
  * @property {string} taskName - name of the js task configured with registerForegroundTask
  * @property {number} delay - start task in delay miliseconds, use 0 to start immediately
  * ... any other values passed to the task as well
  */
-const TaskConfig = {
-
-}
-
+const TaskConfig = {};
 
 class ForegroundService {
+  /**
+   * Registers a piece of JS code to be ran on the service
+   * NOTE: This must be called before anything else, or the service will fail.
+   * NOTE2: Registration must also happen at module level (not at mount)
+   * task will receive all parameters from runTask
+   * @param {task} async function to be called
+   */
+  static registerForegroundTask(taskName, task) {
+    AppRegistry.registerHeadlessTask(taskName, () => task);
+  }
 
-    /**
-     * Registers a piece of JS code to be ran on the service
-     * NOTE: This must be called before anything else, or the service will fail.
-     * NOTE2: Registration must also happen at module level (not at mount)
-     * task will receive all parameters from runTask
-     * @param {task} async function to be called
-     */
-    static registerForegroundTask(taskName, task) {
-        AppRegistry.registerHeadlessTask(taskName, () => task);
-    }
+  /**
+   * Start foreground service
+   * Multiple calls won't start multiple instances of the service, but will increase its internal counter
+   * so calls to stop won't stop until it reaches 0.
+   * Note: notificationConfig can't be re-used (becomes immutable)
+   * @param {NotificationConfig} notificationConfig - Notification config
+   * @return Promise
+   */
+  static async startService(notificationConfig) {
+    console.log('Start Service Triggered');
+    return await ForegroundServiceModule.startService(notificationConfig);
+  }
 
-    /**
-     * Start foreground service
-     * Multiple calls won't start multiple instances of the service, but will increase its internal counter
-     * so calls to stop won't stop until it reaches 0.
-     * Note: notificationConfig can't be re-used (becomes immutable)
-     * @param {NotificationConfig} notificationConfig - Notification config
-     * @return Promise
-     */
-    static async startService(notificationConfig) {
-        console.log('Start Service Triggered')
-        return await ForegroundServiceModule.startService(notificationConfig);
-    }
+  /**
+   * Updates a notification of a running service. Make sure to use the same ID
+   * or it will trigger a separate notification.
+   * Note: this method might fail if called right after starting the service
+   * since the service might not be yet ready.
+   * If service is not running, it will be started automatically like calling startService.
+   * @param {NotificationConfig} notificationConfig - Notification config
+   * @return Promise
+   */
+  static async updateNotification(notificationConfig) {
+    console.log(' Update Service Triggered');
+    return await ForegroundServiceModule.updateNotification(notificationConfig);
+  }
 
-    /**
-     * Updates a notification of a running service. Make sure to use the same ID
-     * or it will trigger a separate notification.
-     * Note: this method might fail if called right after starting the service
-     * since the service might not be yet ready.
-     * If service is not running, it will be started automatically like calling startService.
-     * @param {NotificationConfig} notificationConfig - Notification config
-     * @return Promise
-     */
-    static async updateNotification(notificationConfig) {
-        
-        console.log(' Update Service Triggered')
-        return await ForegroundServiceModule.updateNotification(notificationConfig);
-    }
+  /**
+   * Cancels/dimisses a notification given its id. Useful if the service used
+   * more than one notification
+   * @param {number} id - Notification id to cancel
+   * @return Promise
+   */
+  static async cancelNotification(id) {
+    console.log('Cancel Service Triggered');
+    return await ForegroundServiceModule.cancelNotification({ id: id });
+  }
 
-    /**
-     * Cancels/dimisses a notification given its id. Useful if the service used
-     * more than one notification
-     * @param {number} id - Notification id to cancel
-     * @return Promise
-     */
-    static async cancelNotification(id) {
-        
-        console.log('Cancel Service Triggered')
-        return await ForegroundServiceModule.cancelNotification({id: id});
-    }
+  /**
+   * Stop foreground service. Note: Pending tasks might still complete.
+   * If startService will called multiple times, this needs to be called as many times.
+   * @return Promise
+   */
+  static async stopService() {
+    console.log('Stop Service Triggered');
+    return await ForegroundServiceModule.stopService();
+  }
 
-    /**
-     * Stop foreground service. Note: Pending tasks might still complete.
-     * If startService will called multiple times, this needs to be called as many times.
-     * @return Promise
-     */
-    static async stopService() {
-        console.log('Stop Service Triggered')
-        return await ForegroundServiceModule.stopService();
-    }
+  /**
+   * Stop foreground service. Note: Pending tasks might still complete.
+   * This will stop the service regardless of how many times start was called
+   * @return Promise
+   */
+  static async stopServiceAll() {
+    return await ForegroundServiceModule.stopServiceAll();
+  }
 
-    /**
-     * Stop foreground service. Note: Pending tasks might still complete.
-     * This will stop the service regardless of how many times start was called
-     * @return Promise
-     */
-    static async stopServiceAll() {
-        return await ForegroundServiceModule.stopServiceAll();
-    }
+  /**
+   * Runs a previously configured headless task.
+   * Task must be able to self stop if the service is stopped, since it can't be force killed once started.
+   * Note: This method might silently fail if the service is not running, but will run successfully
+   * if the service is still spinning up.
+   * If the service is not running because it was killed, it will be attempted to be started again
+   * using the last notification available.
+   * @param {TaskConfig} taskConfig - Notification config
+   * @return Promise
+   */
+  static async runTask(taskConfig) {
+    return await ForegroundServiceModule.runTask(taskConfig);
+  }
 
-    /**
-     * Runs a previously configured headless task.
-     * Task must be able to self stop if the service is stopped, since it can't be force killed once started.
-     * Note: This method might silently fail if the service is not running, but will run successfully
-     * if the service is still spinning up.
-     * If the service is not running because it was killed, it will be attempted to be started again
-     * using the last notification available.
-     * @param {TaskConfig} taskConfig - Notification config
-     * @return Promise
-     */
-    static async runTask(taskConfig) {
-        return await ForegroundServiceModule.runTask(taskConfig);
-    }
-
-    /**
-     * Returns an integer indicating if the service is running or not.
-     * The integer represents the internal counter of how many startService
-     * calls were done without calling stopService
-     * @return Promise
-     */
-    static async isRunning() {
-        return await ForegroundServiceModule.isRunning();
-    }
+  /**
+   * Returns an integer indicating if the service is running or not.
+   * The integer represents the internal counter of how many startService
+   * calls were done without calling stopService
+   * @return Promise
+   */
+  static async isRunning() {
+    return await ForegroundServiceModule.isRunning();
+  }
 }
 
-
-
-
 const randHashString = (len) => {
-    return 'x'.repeat(len).replace(/[xy]/g, (c) => {
-      let r = (Math.random() * 16) | 0,
-        v = c == 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  };
+  return 'x'.repeat(len).replace(/[xy]/g, (c) => {
+    let r = (Math.random() * 16) | 0,
+      v = c == 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 //initial state
 let tasks = {};
@@ -168,7 +156,7 @@ const taskRunner = async () => {
       if (now >= task.nextExecutionTime) {
         //push this task's promise for later execution
         promises.push(
-          Promise.resolve(task.task()).then(task.onSuccess, task.onError),
+          Promise.resolve(task.task()).then(task.onSuccess, task.onError)
         );
         //if this is a looped task then increment its nextExecutionTime by delay for the next interval
         if (task.onLoop) task.nextExecutionTime = now + task.delay;
@@ -202,6 +190,9 @@ const start = async ({
   button = false,
   buttonText = '',
   buttonOnPress = 'buttonOnPress',
+  button2 = false,
+  button2Text = '',
+  button2OnPress = 'button2OnPress',
   mainOnPress = 'mainOnPress',
 }) => {
   try {
@@ -219,6 +210,9 @@ const start = async ({
         button,
         buttonText,
         buttonOnPress,
+        button2,
+        button2Text,
+        button2OnPress,
         mainOnPress,
       });
       serviceRunning = true;
@@ -247,6 +241,9 @@ const update = async ({
   button = false,
   buttonText = '',
   buttonOnPress = 'buttonOnPress',
+  button2 = false,
+  button2Text = '',
+  button2OnPress = 'button2OnPress',
   mainOnPress = 'mainOnPress',
 }) => {
   try {
@@ -263,6 +260,9 @@ const update = async ({
       button,
       buttonText,
       buttonOnPress,
+      button2,
+      button2Text,
+      button2OnPress,
       mainOnPress,
     });
     if (!serviceRunning) {
@@ -294,7 +294,7 @@ const add_task = (
     taskId = randHashString(12),
     onSuccess = () => {},
     onError = () => {},
-  },
+  }
 ) => {
   const _type = typeof task;
   if (_type !== 'function')
@@ -322,7 +322,7 @@ const update_task = (
     taskId = randHashString(12),
     onSuccess = () => {},
     onError = () => {},
-  },
+  }
 ) => {
   const _type = typeof task;
   if (_type !== 'function')
