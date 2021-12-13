@@ -283,7 +283,10 @@ const stop = () => {
   serviceRunning = false;
   return ForegroundService.stopService();
 };
-
+const stopAll = () => {
+  serviceRunning = false;
+  return ForegroundService.stopServiceAll();
+};
 const is_running = () => serviceRunning;
 
 const add_task = (
@@ -356,6 +359,7 @@ const ReactNativeForegroundService = {
   start,
   update,
   stop,
+  stopAll,
   is_running,
   add_task,
   update_task,
