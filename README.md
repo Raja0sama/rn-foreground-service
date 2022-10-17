@@ -1,5 +1,10 @@
 # @supersami/rn-foreground-service 🤟
 
+
+```
+Because of lack of time, i am unable to maintain the library to the latest version of Android as well unable to respond to you guys queries as well. But from November 2022 i will re-start updating this library once again. 
+```
+
 > A foreground service with headless task that can manage multiple headless tasks execution at the same time and handle interactions. 🎉
 
 _Looking for a contributors._
