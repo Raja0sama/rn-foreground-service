@@ -1,9 +1,7 @@
-# @supersami/rn-foreground-service 🤟
+# @kirenpaul/rn-foreground-service 🤟
 
+Modified by kirenpaul to suit internal needs
 
-```
-Because of lack of time, i am unable to maintain the library to the latest version of Android as well unable to respond to you guys queries as well. But from November 2022 i will re-start updating this library once again. 
-```
 
 > A foreground service with headless task that can manage multiple headless tasks execution at the same time and handle interactions. 🎉
 
@@ -21,13 +19,13 @@ If you want a foreground service in react native, RN-foreground-service is the w
 ## Install
 
 ```bash
-npm i @supersami/rn-foreground-service
+npm i @kirenpaul/rn-foreground-service
 ```
 
 or
 
 ```bash
-yarn add @supersami/rn-foreground-service
+yarn add @kirenpaul/rn-foreground-service
 ```
 
 ### Update Native Files
@@ -150,7 +148,7 @@ index.js
 
 ```js
 // Import the library
-import ReactNativeForegroundService from '@supersami/rn-foreground-service';
+import ReactNativeForegroundService from '@kirenpaul/rn-foreground-service';
 import { AppRegistry } from 'react-native';
 import { name as appName } from './app.json';
 import App from './src/App.tsx';

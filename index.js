@@ -354,6 +354,10 @@ const get_task = (taskId) => tasks[taskId];
 
 const get_all_tasks = () => tasks;
 
+const cancel_notification = (id) => {
+  return ForegroundService.cancelNotification(id);
+};
+
 const ReactNativeForegroundService = {
   register,
   start,
@@ -368,6 +372,7 @@ const ReactNativeForegroundService = {
   remove_all_tasks,
   get_task,
   get_all_tasks,
+  cancel_notification
 };
 
 export default ReactNativeForegroundService;
