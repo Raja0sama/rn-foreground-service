@@ -19,15 +19,16 @@ If you want a foreground service in react native, RN-foreground-service is the w
 [![NPM](https://img.shields.io/npm/v/@supersami/rn-foreground-service.svg)](https://www.npmjs.com/package/@supersami/rn-foreground-service) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Install
+> :warning: **The NPM's online repository version of this project is out of date. Please install directly from the repo.**
 
 ```bash
-npm i @supersami/rn-foreground-service
+npm i https://github.com/Raja0sama/rn-foreground-service.git
 ```
 
 or
 
 ```bash
-yarn add @supersami/rn-foreground-service
+yarn add https://github.com/Raja0sama/rn-foreground-service.git
 ```
 
 ### Update Native Files
