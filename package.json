@@ -23,7 +23,5 @@
   "peerDependencies": {
     "react-native": ">=0.59.0"
   },
-  "dependencies": {
-    "@supersami/rn-foreground-service": "https://github.com/Raja0sama/rn-foreground-service#v2"
-  }
+  "dependencies": {}
 }
