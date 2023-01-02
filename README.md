@@ -1,18 +1,11 @@
-# @supersami/rn-foreground-service 🤟
+# @supersami/rn-foreground-service v2 🤟
 
-### Update :
+### Change Log :
+1 - Working and tested on React Native v0.69
+2 - Less Configuration needed now, Automated most of the configuration to install the foreground service.
+3 - AutoLinking now supported. 
+4 - Typescript support added
 
-In case the service is not working, Kindly check the follow checklist
-
-```
-1 - Adding Permission Request in Manifest and Registering Foreground Service
-
-2 - Adding Colors.xml
-
-3 - Adding the MainActivity code that are shown below
-
-3 - Properly Registering Your Task.
-```
 
 ![react-browser-tab](https://miro.medium.com/max/1728/1*5ktY8XkS5a5iM6LsLOP7jw.png)
 [DEMO](https://github.com/Raja0sama/ForegroundSerivceExample)
@@ -35,116 +28,10 @@ or
 yarn add @supersami/rn-foreground-service
 ```
 
-### Update Native Files
+And Then Just run this command once 
 
-#### AndroidManifest.xml
-
-```xml
-<manifest
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.cool.app"
->
-  <!-- Add the next two lines -->
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.WAKE_LOCK" />
-  <application
-  // ...
-  >
-    // ...
-    <!-- Add these -->
-    <meta-data
-      android:name="com.supersami.foregroundservice.notification_channel_name"
-      android:value="Sticky Title"
-    />
-    <meta-data
-      android:name="com.supersami.foregroundservice.notification_channel_description"
-      android:value="Sticky Description."
-    />
-    <meta-data
-      android:name="com.supersami.foregroundservice.notification_color"
-      android:resource="@color/blue"
-    />
-    <service android:name="com.supersami.foregroundservice.ForegroundService"></service>
-    <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service>
-    <!-- End of content to add -->
-  </application>
-</manifest>
 ```
-
-#### MainActivity.java
-
-```java
-package com.cool.app;
-
-import android.os.Bundle;
-import com.facebook.react.ReactActivity;
-// Add the following imports
-import android.content.Intent;
-import android.util.Log;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
-
-public class MainActivity extends ReactActivity {
-  // ...
-
-  // Add from here down to the end of your MainActivity
-  public boolean isOnNewIntent = false;
-
-  @Override
-  public void onNewIntent(Intent intent) {
-    super.onNewIntent(intent);
-    isOnNewIntent = true;
-    ForegroundEmitter();
-  }
-
-  @Override
-  protected void onStart() {
-    super.onStart();
-    if(isOnNewIntent == true){}else {
-        ForegroundEmitter();
-    }
-  }
-
-  public  void  ForegroundEmitter(){
-    // this method is to send back data from java to javascript so one can easily
-    // know which button from notification or the notification button is clicked
-    String  main = getIntent().getStringExtra("mainOnPress");
-    String  btn = getIntent().getStringExtra("buttonOnPress");
-    String  btn2 = getIntent().getStringExtra("button2OnPress");
-    WritableMap  map = Arguments.createMap();
-    if (main != null) {
-        map.putString("main", main);
-    }
-    if (btn != null) {
-        map.putString("button", btn);
-    }
-    if (btn2 != null) {
-        map.putString("button", btn);
-    }
-    try {
-        getReactInstanceManager().getCurrentReactContext()
-        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-        .emit("notificationClickHandle", map);
-    } catch (Exception  e) {
-    Log.e("SuperLog", "Caught Exception: " + e.getMessage());
-    }
-  }
-}
-```
-
-#### colors.xml
-
-If this file doesn't exist in your android path at `android/app/src/main/res/values/colors.xml`, add it. This sets the notification color specified in `AndroidManifest.xml`.
-
-```xml
-<resources>
-    <item  name="blue"  type="color">#00C4D1
-    </item>
-    <integer-array  name="androidcolors">
-    <item>@color/blue</item>
-    </integer-array>
-</resources>
+node node_modules/@supersami/rn-foreground-service/postinstall.js
 ```
 
 ## Usage
