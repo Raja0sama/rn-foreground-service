@@ -1,13 +1,18 @@
 # @supersami/rn-foreground-service 🤟
 
+### Update :
+
+In case the service is not working, Kindly check the follow checklist
 
 ```
-Because of lack of time, i am unable to maintain the library to the latest version of Android as well unable to respond to you guys queries as well. But from November 2022 i will re-start updating this library once again. 
+1 - Adding Permission Request in Manifest and Registering Foreground Service
+
+2 - Adding Colors.xml
+
+3 - Adding the MainActivity code that are shown below
+
+3 - Properly Registering Your Task.
 ```
-
-> A foreground service with headless task that can manage multiple headless tasks execution at the same time and handle interactions. 🎉
-
-_Looking for a contributors._
 
 ![react-browser-tab](https://miro.medium.com/max/1728/1*5ktY8XkS5a5iM6LsLOP7jw.png)
 [DEMO](https://github.com/Raja0sama/ForegroundSerivceExample)
@@ -150,10 +155,10 @@ index.js
 
 ```js
 // Import the library
-import ReactNativeForegroundService from '@supersami/rn-foreground-service';
-import { AppRegistry } from 'react-native';
-import { name as appName } from './app.json';
-import App from './src/App.tsx';
+import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+import { AppRegistry } from "react-native";
+import { name as appName } from "./app.json";
+import App from "./src/App.tsx";
 
 // Register the service
 ReactNativeForegroundService.register();
@@ -163,10 +168,10 @@ AppRegistry.registerComponent(appName, () => App);
 ### Add a Task
 
 ```js
-ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
+ReactNativeForegroundService.add_task(() => console.log("I am Being Tested"), {
   delay: 100,
   onLoop: true,
-  taskId: 'taskid',
+  taskId: "taskid",
   onError: (e) => console.log(`Error logging:`, e),
 });
 ```
@@ -176,8 +181,8 @@ ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
 ```js
 ReactNativeForegroundService.start({
   id: 144,
-  title: 'Foreground Service',
-  message: 'you are online!',
+  title: "Foreground Service",
+  message: "you are online!",
 });
 ```
 
