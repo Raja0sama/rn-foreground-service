@@ -11,7 +11,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ReactActivity {
 
       public boolean isOnNewIntent = false;
 

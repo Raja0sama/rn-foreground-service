@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "injectData": "node injectManifest.js"
   },
-  "license": "ISC",
+  "license": "MIT",
   "keywords": [
     "react",
     "react-native",
@@ -20,8 +20,10 @@
   "author": {
     "name": "Raja Osama (supersami)"
   },
-  "license": "MIT",
   "peerDependencies": {
     "react-native": ">=0.59.0"
+  },
+  "dependencies": {
+    "@supersami/rn-foreground-service": "https://github.com/Raja0sama/rn-foreground-service#v2"
   }
 }
