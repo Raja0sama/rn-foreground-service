@@ -12,6 +12,9 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 public class MainActivity extends Activity {
+
+      public boolean isOnNewIntent = false;
+
     @Override
   public void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
