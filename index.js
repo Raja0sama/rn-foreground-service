@@ -194,6 +194,8 @@ const start = async ({
   button2Text = "",
   button2OnPress = "button2OnPress",
   mainOnPress = "mainOnPress",
+  progress,
+  color,
 }) => {
   try {
     if (!serviceRunning) {
@@ -214,6 +216,10 @@ const start = async ({
         button2Text,
         button2OnPress,
         mainOnPress,
+        progressBar: !!progress,
+        progressBarMax: progress?.max,
+        progressBarCurr: progress?.curr,
+        color,
       });
       serviceRunning = true;
       await ForegroundService.runTask({
@@ -235,7 +241,7 @@ const update = async ({
   vibration = false,
   visibility = "public",
   largeIcon = "ic_launcher",
-  icon = "ic_notification",
+  icon = "ic_launcher",
   importance = "max",
   number = "0",
   button = false,
@@ -245,6 +251,8 @@ const update = async ({
   button2Text = "",
   button2OnPress = "button2OnPress",
   mainOnPress = "mainOnPress",
+  progress,
+  color,
 }) => {
   try {
     await ForegroundService.updateNotification({
@@ -264,6 +272,9 @@ const update = async ({
       button2Text,
       button2OnPress,
       mainOnPress,
+      progressBar: !!progress,
+      progressBarMax: progress?.max,
+      progressBarCurr: progress?.curr,
     });
     if (!serviceRunning) {
       serviceRunning = true;
