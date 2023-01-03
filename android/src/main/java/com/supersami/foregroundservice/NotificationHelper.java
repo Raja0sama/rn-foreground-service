@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.core.app.NotificationCompat;
@@ -146,8 +147,13 @@ class NotificationHelper {
         }
 
 
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             notificationBuilder.setColor(this.config.getNotificationColor());
+        }
+        String color = bundle.getString("color");
+        if(color != null){
+            notificationBuilder.setColor(Color.parseColor(color));
         }
 
         notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(bundle.getString("message")));
