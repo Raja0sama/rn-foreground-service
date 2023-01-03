@@ -137,7 +137,9 @@ class NotificationHelper {
             .setContentIntent(pendingIntent)
             .setOngoing(bundle.getBoolean("ongoing", false))
             .setContentText(bundle.getString("message"));
-            
+
+       
+
         if(bundle.getBoolean("button", false) == true){
             notificationBuilder.addAction(R.drawable.redbox_top_border_background, bundle.getString("buttonText", "Button"), pendingBtnIntent);
         }
@@ -164,8 +166,6 @@ class NotificationHelper {
         if(iconName == null){
             iconName = "ic_launcher";
         }
-
-        
         notificationBuilder.setSmallIcon(getResourceIdForResourceName(context, iconName));
 
 
@@ -188,6 +188,16 @@ class NotificationHelper {
                 notificationBuilder.setNumber(numberInt);
             }
         }
+
+        Boolean progress = bundle.getBoolean("progressBar");
+        if(progress){
+            double max = bundle.getDouble("progressBarMax");
+            double curr = bundle.getDouble("progressBarCurr");
+            notificationBuilder.setProgress((int)max, (int)curr,false);
+        }
+
+        notificationBuilder.setOnlyAlertOnce(true);
+
 
         return notificationBuilder.build();
     }
@@ -254,7 +264,6 @@ class NotificationHelper {
                     importance = NotificationManager.IMPORTANCE_HIGH;
             }
         }
-        Log.d("Check ", ""+bundle.getBoolean("vibration"));
         NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, this.config.getChannelName(), importance);
         channel.setDescription(this.config.getChannelDescription());
         channel.enableLights(true);
