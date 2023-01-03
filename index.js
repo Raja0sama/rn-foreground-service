@@ -196,6 +196,7 @@ const start = async ({
   mainOnPress = "mainOnPress",
   progress,
   color,
+  setOnlyAlertOnce,
 }) => {
   try {
     if (!serviceRunning) {
@@ -220,6 +221,7 @@ const start = async ({
         progressBarMax: progress?.max,
         progressBarCurr: progress?.curr,
         color,
+        setOnlyAlertOnce,
       });
       serviceRunning = true;
       await ForegroundService.runTask({
@@ -253,6 +255,7 @@ const update = async ({
   mainOnPress = "mainOnPress",
   progress,
   color,
+  setOnlyAlertOnce,
 }) => {
   try {
     await ForegroundService.updateNotification({
@@ -275,6 +278,8 @@ const update = async ({
       progressBar: !!progress,
       progressBarMax: progress?.max,
       progressBarCurr: progress?.curr,
+      setOnlyAlertOnce,
+      color,
     });
     if (!serviceRunning) {
       serviceRunning = true;

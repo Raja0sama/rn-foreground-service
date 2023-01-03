@@ -17,6 +17,9 @@ declare const ReactNativeForegroundService: {
     button2Text,
     button2OnPress,
     mainOnPress,
+    progress,
+    color,
+    setOnlyAlertOnce,
   }: {
     id: any;
     title?: any;
@@ -34,6 +37,12 @@ declare const ReactNativeForegroundService: {
     button2Text?: string | undefined;
     button2OnPress?: string | undefined;
     mainOnPress?: string | undefined;
+    progress?: {
+      max: number;
+      curr: number;
+    };
+    color?: string;
+    setOnlyAlertOnce?: string;
   }) => Promise<void>;
   update: ({
     id,
@@ -52,6 +61,9 @@ declare const ReactNativeForegroundService: {
     button2Text,
     button2OnPress,
     mainOnPress,
+    progress,
+    color,
+    setOnlyAlertOnce,
   }: {
     id: any;
     title?: any;
@@ -69,6 +81,12 @@ declare const ReactNativeForegroundService: {
     button2Text?: string | undefined;
     button2OnPress?: string | undefined;
     mainOnPress?: string | undefined;
+    progress?: {
+      max: number;
+      curr: number;
+    };
+    color?: string;
+    setOnlyAlertOnce?: string;
   }) => Promise<void>;
   stop: () => Promise<any>;
   stopAll: () => Promise<any>;
@@ -110,7 +128,6 @@ declare const ReactNativeForegroundService: {
   remove_all_tasks: () => {};
   get_task: (taskId: any) => any;
   get_all_tasks: () => {};
-
   eventListener: (callBack: any) => () => void;
 };
 export default ReactNativeForegroundService;
