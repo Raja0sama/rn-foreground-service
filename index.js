@@ -1,4 +1,4 @@
-import { NativeModules, AppRegistry } from 'react-native';
+import { NativeModules, AppRegistry, DeviceEventEmitter } from "react-native";
 
 // ANDROID ONLY
 // Copied and adapted from https://github.com/voximplant/react-native-foreground-service
@@ -53,7 +53,7 @@ class ForegroundService {
    * @return Promise
    */
   static async startService(notificationConfig) {
-    console.log('Start Service Triggered');
+    console.log("Start Service Triggered");
     return await ForegroundServiceModule.startService(notificationConfig);
   }
 
@@ -67,7 +67,7 @@ class ForegroundService {
    * @return Promise
    */
   static async updateNotification(notificationConfig) {
-    console.log(' Update Service Triggered');
+    console.log(" Update Service Triggered");
     return await ForegroundServiceModule.updateNotification(notificationConfig);
   }
 
@@ -78,7 +78,7 @@ class ForegroundService {
    * @return Promise
    */
   static async cancelNotification(id) {
-    console.log('Cancel Service Triggered');
+    console.log("Cancel Service Triggered");
     return await ForegroundServiceModule.cancelNotification({ id: id });
   }
 
@@ -88,7 +88,7 @@ class ForegroundService {
    * @return Promise
    */
   static async stopService() {
-    console.log('Stop Service Triggered');
+    console.log("Stop Service Triggered");
     return await ForegroundServiceModule.stopService();
   }
 
@@ -127,9 +127,9 @@ class ForegroundService {
 }
 
 const randHashString = (len) => {
-  return 'x'.repeat(len).replace(/[xy]/g, (c) => {
+  return "x".repeat(len).replace(/[xy]/g, (c) => {
     let r = (Math.random() * 16) | 0,
-      v = c == 'x' ? r : (r & 0x3) | 0x8;
+      v = c == "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 };
@@ -168,32 +168,32 @@ const taskRunner = async () => {
     //execute all tasks promises in parallel
     await Promise.all(promises);
   } catch (error) {
-    console.log('Error in FgService taskRunner:', error);
+    console.log("Error in FgService taskRunner:", error);
   }
 };
 
 const register = () => {
   if (!serviceRunning)
-    return ForegroundService.registerForegroundTask('myTaskName', taskRunner);
+    return ForegroundService.registerForegroundTask("myTaskName", taskRunner);
 };
 
 const start = async ({
   id,
   title = id,
-  message = 'Foreground Service Running...',
+  message = "Foreground Service Running...",
   vibration = false,
-  visibility = 'public',
-  icon = 'ic_notification',
-  largeIcon = 'ic_launcher',
-  importance = 'max',
-  number = '1',
+  visibility = "public",
+  icon = "ic_notification",
+  largeIcon = "ic_launcher",
+  importance = "max",
+  number = "1",
   button = false,
-  buttonText = '',
-  buttonOnPress = 'buttonOnPress',
+  buttonText = "",
+  buttonOnPress = "buttonOnPress",
   button2 = false,
-  button2Text = '',
-  button2OnPress = 'button2OnPress',
-  mainOnPress = 'mainOnPress',
+  button2Text = "",
+  button2OnPress = "button2OnPress",
+  mainOnPress = "mainOnPress",
 }) => {
   try {
     if (!serviceRunning) {
@@ -217,12 +217,12 @@ const start = async ({
       });
       serviceRunning = true;
       await ForegroundService.runTask({
-        taskName: 'myTaskName',
+        taskName: "myTaskName",
         delay: samplingInterval,
         loopDelay: samplingInterval,
         onLoop: true,
       });
-    } else console.log('Foreground service is already running.');
+    } else console.log("Foreground service is already running.");
   } catch (error) {
     throw error;
   }
@@ -231,20 +231,20 @@ const start = async ({
 const update = async ({
   id,
   title = id,
-  message = 'Foreground Service Running...',
+  message = "Foreground Service Running...",
   vibration = false,
-  visibility = 'public',
-  largeIcon = 'ic_launcher',
-  icon = 'ic_notification',
-  importance = 'max',
-  number = '0',
+  visibility = "public",
+  largeIcon = "ic_launcher",
+  icon = "ic_notification",
+  importance = "max",
+  number = "0",
   button = false,
-  buttonText = '',
-  buttonOnPress = 'buttonOnPress',
+  buttonText = "",
+  buttonOnPress = "buttonOnPress",
   button2 = false,
-  button2Text = '',
-  button2OnPress = 'button2OnPress',
-  mainOnPress = 'mainOnPress',
+  button2Text = "",
+  button2OnPress = "button2OnPress",
+  mainOnPress = "mainOnPress",
 }) => {
   try {
     await ForegroundService.updateNotification({
@@ -268,7 +268,7 @@ const update = async ({
     if (!serviceRunning) {
       serviceRunning = true;
       await ForegroundService.runTask({
-        taskName: 'myTaskName',
+        taskName: "myTaskName",
         delay: samplingInterval,
         loopDelay: samplingInterval,
         onLoop: true,
@@ -300,7 +300,7 @@ const add_task = (
   }
 ) => {
   const _type = typeof task;
-  if (_type !== 'function')
+  if (_type !== "function")
     throw `invalid task of type ${_type}, expected a function or a Promise`;
 
   if (!tasks[taskId])
@@ -328,7 +328,7 @@ const update_task = (
   }
 ) => {
   const _type = typeof task;
-  if (_type !== 'function')
+  if (_type !== "function")
     throw `invalid task of type ${_type}, expected a function or a Promise`;
 
   tasks[taskId] = {
@@ -354,6 +354,17 @@ const get_task = (taskId) => tasks[taskId];
 
 const get_all_tasks = () => tasks;
 
+const eventListener = (callBack) => {
+  let subscription = DeviceEventEmitter.addListener(
+    "notificationClickHandle",
+    callBack
+  );
+
+  return function cleanup() {
+    subscription.remove();
+  };
+};
+
 const ReactNativeForegroundService = {
   register,
   start,
@@ -368,6 +379,7 @@ const ReactNativeForegroundService = {
   remove_all_tasks,
   get_task,
   get_all_tasks,
+  eventListener,
 };
 
 export default ReactNativeForegroundService;
