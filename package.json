@@ -1,6 +1,6 @@
 {
   "name": "@supersami/rn-foreground-service",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A Foreground Service for React Native",
   "main": "index.js",
   "repository": "Raja0sama/rn-foreground-service",
