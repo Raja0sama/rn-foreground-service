@@ -1,0 +1,76 @@
+{
+  "app": {
+    "name": "RN Foreground Service v2",
+    "theme": {
+      "primary": "#39679d",
+      "secondary": "#663738",
+      "body": {
+        "mode": "dark",
+        "dark": "#0e1117",
+        "light": "#fff"
+      }
+    },
+    "landingContent": "/markdowns/markdown.md",
+    "headerMenu": [
+      {
+        "name": "Documentation",
+        "url": "/documentation"
+      },
+      {
+        "name": "GitHub",
+        "url": "https://github.com/Raja0sama/rn-foreground-service"
+      },
+      {
+        "name": "NPM",
+        "url": "https://www.npmjs.com/package/@supersami/rn-foreground-service"
+      }
+    ]
+  },
+  "routes": [
+    {
+      "name": "Documentation",
+      "key": "/documentation",
+      "redirect": "introduction",
+      "layout": "DOCUMENTATION",
+      "children": [
+        {
+          "name": "Introduction",
+          "key": "introduction",
+          "layout": "DOCUMENTATION_CONTAINER",
+          "content": "/markdowns/introduction.md"
+        },
+        {
+          "name": "Installation",
+          "key": "installation",
+          "layout": "DOCUMENTATION_CONTAINER",
+          "content": "/markdowns/installation.md"
+        },
+        {
+          "name": "Getting Started",
+          "key": "getting-started",
+          "layout": "DOCUMENTATION_CONTAINER",
+          "content": "/markdowns/getting-started.md"
+        }
+      ]
+    },
+    {
+      "name": "API",
+      "key": "/api",
+      "layout": "DOCUMENTATION",
+      "children": [
+        {
+          "name": "Notification",
+          "key": "notification",
+          "layout": "DOCUMENTATION_CONTAINER",
+          "content": "/markdowns/notification.md"
+        },
+        {
+          "name": "Tasks",
+          "key": "tasks",
+          "layout": "DOCUMENTATION_CONTAINER",
+          "content": "/markdowns/tasks.md"
+        }
+      ]
+    }
+  ]
+}
