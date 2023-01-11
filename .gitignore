@@ -8,7 +8,6 @@
 # testing
 /coverage
 .vercel
-build
 
 # misc
 .DS_Store
