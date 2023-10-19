@@ -1,8 +1,10 @@
-import React from "react";
-import useTheme from "../../hooks/useTheme";
+import React, { useEffect } from "react";
+
+import { Header } from "../../components/Header";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { useLoaderData } from "react-router-dom";
-import { Header } from "../../components/Header";
+import useTheme from "../../hooks/useTheme";
+
 const Home = () => {
   const data = useLoaderData();
   const theme = useTheme();
@@ -10,6 +12,13 @@ const Home = () => {
     backgroundColor: theme.body[theme.theme],
     color: theme.theme === "light" ? "#000" : "#fff",
   };
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-color-mode",
+      theme == "light" ? "dark" : "light"
+    );
+  }, [theme.theme]);
   return (
     <div
       style={mainContainerStyles}
