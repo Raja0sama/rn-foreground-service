@@ -16,7 +16,7 @@ const Home = () => {
   useEffect(() => {
     document.documentElement.setAttribute(
       "data-color-mode",
-      theme == "light" ? "dark" : "light"
+      theme != "light" ? "dark" : "light"
     );
   }, [theme.theme]);
   return (
