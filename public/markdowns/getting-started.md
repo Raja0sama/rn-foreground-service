@@ -1,7 +1,26 @@
+## Important Notes 
+
+With Android 13, you need to explicty ask for a Post notification permission by the users, this repository does and will not contain code to request perission by the users. 
+
+You can use this repo `https://www.npmjs.com/package/react-native-permissions` to ask for the permission by the users. 
+
+Also you need to mention the permission in android manifest as well 
+
+```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+```
+
 # Getting Started
 
 After Installing and linking the application, the rest of the procedure is pretty stragihtforward. You need register a headless task and and create a foreground service.
 
+#### Example Application 
+
+Here is an Example app to run this service, feel free to go through the code. 
+
+```
+https://github.com/Raja0sama/foreground-service-example
+```
 ### Step 1 :
 
 In your root, Index.js file. Paste the following code.

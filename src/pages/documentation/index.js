@@ -1,12 +1,19 @@
-import React from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+
 import { Header } from "../../components/Header";
-import useTheme from "../../hooks/useTheme";
 import config from "../../config/index.json";
+import useTheme from "../../hooks/useTheme";
 
 const Documentation = (props) => {
   const location = useLocation();
   const theme = useTheme();
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-color-mode",
+      theme != "light" ? "dark" : "light"
+    );
+  }, [theme.theme]);
   const mainContainerStyles = {
     backgroundColor: theme.body[theme.theme],
     color: theme.theme === "light" ? "#000" : "#fff",
