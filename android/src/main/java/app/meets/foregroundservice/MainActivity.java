@@ -1,4 +1,4 @@
-package app.meets.app.meets.foregroundservice;
+package app.meets.foregroundservice;
 
 import android.app.Activity;
 import android.content.Intent;

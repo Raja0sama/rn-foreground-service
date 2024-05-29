@@ -1,4 +1,4 @@
-package app.meets.app.meets.foregroundservice;
+package app.meets.foregroundservice;
 
 class Constants {
     static final String NOTIFICATION_CONFIG = "app.meets.foregroundservice.notif_config";

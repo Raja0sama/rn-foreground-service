@@ -1,4 +1,4 @@
-package app.meets.app.meets.foregroundservice;
+package app.meets.foregroundservice;
 
 import java.util.Arrays;
 import java.util.Collections;

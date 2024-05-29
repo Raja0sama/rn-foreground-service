@@ -1,4 +1,4 @@
-package app.meets.app.meets.foregroundservice;
+package app.meets.foregroundservice;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -13,10 +13,10 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
-import static app.meets.app.meets.foregroundservice.Constants.ERROR_INVALID_CONFIG;
-import static app.meets.app.meets.foregroundservice.Constants.ERROR_SERVICE_ERROR;
-import static app.meets.app.meets.foregroundservice.Constants.NOTIFICATION_CONFIG;
-import static app.meets.app.meets.foregroundservice.Constants.TASK_CONFIG;
+import static app.meets.foregroundservice.Constants.ERROR_INVALID_CONFIG;
+import static app.meets.foregroundservice.Constants.ERROR_SERVICE_ERROR;
+import static app.meets.foregroundservice.Constants.NOTIFICATION_CONFIG;
+import static app.meets.foregroundservice.Constants.TASK_CONFIG;
 
 
 public class ForegroundServiceModule extends ReactContextBaseJavaModule {

@@ -1,4 +1,4 @@
-package app.meets.app.meets.foregroundservice;
+package app.meets.foregroundservice;
 
 import android.app.Notification;
 import android.app.Service;

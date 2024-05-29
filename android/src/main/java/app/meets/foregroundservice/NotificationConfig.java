@@ -1,4 +1,4 @@
-package app.meets.app.meets.foregroundservice;
+package app.meets.foregroundservice;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
