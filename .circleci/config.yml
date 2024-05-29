@@ -21,8 +21,12 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths:
-            - ./
-            - android/*
+            - ./index.js
+            - ./index.d.ts
+            - ./package.json
+            - ./react-native.config.js
+            - ./README.md
+            - ./android/*
 
   publish:
     docker:
