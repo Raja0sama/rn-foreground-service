@@ -41,7 +41,9 @@ jobs:
       - run:
           name: npm auth
           command: |
-            echo "//npm.pkg.github.com/:_authToken=${NPM_PUBLISH_KEY}" > .npmrc
+            echo "@themeetzapp:registry=https://npm.pkg.github.com/" > ~/.npmrc
+            echo "//npm.pkg.github.com/:_authToken=${NPM_PUBLISH_KEY}" > ~/.npmrc
+            npm set @themeetzapp:registry https://npm.pkg.github.com
       - run:
           name: deploying to github packages
           command: |
