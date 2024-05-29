@@ -1,0 +1,57 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:16
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./
+            - android/*
+
+  publish:
+    docker:
+      - image: circleci/node:16
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run:
+          name: npm auth
+          command: |
+            echo "//npm.pkg.github.com/:_authToken=${NPM_PUBLISH_KEY}" > .npmrc
+      - run:
+          name: deploying to github packages
+          command: |
+            npm publish
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - publish:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master

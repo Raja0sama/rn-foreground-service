@@ -1,27 +1,16 @@
 {
-  "name": "@supersami/rn-foreground-service",
-  "version": "2.1.0",
+  "name": "@themeetzapp/react-native-foreground-service",
+  "version": "1.0.0",
   "description": "A Foreground Service for React Native",
   "main": "index.js",
-  "repository": "Raja0sama/rn-foreground-service",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node postinstall.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "license": "MIT",
-  "keywords": [
-    "react",
-    "react-native",
-    "android",
-    "foreground",
-    "service",
-    "background"
-  ],
-  "author": {
-    "name": "Raja Osama (supersami)"
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:themeetzapp/react-native-foreground-service.git"
   },
   "peerDependencies": {
-    "react-native": ">=0.59.0"
-  },
-  "dependencies": {}
+    "react-native": ">=0.74.0"
+  }
 }
