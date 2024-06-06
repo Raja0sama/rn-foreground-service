@@ -2,3 +2,10 @@
 node_modules
 .gitignore
 *.iml
+.idea
+android/local.properties
+android/build
+android/.gradle
+android/gradle
+android/gradlew
+android/gradlew.bat

@@ -1,13 +1,16 @@
 {
   "name": "@themeetzapp/react-native-foreground-service",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Foreground Service for React Native",
-  "main": "index.js",
+  "main": "index.ts",
+  "types": "./index.d.ts",
   "repository": {
     "type": "git",
     "url": "git@github.com:themeetzapp/react-native-foreground-service.git"
   },
   "author": "alangviser",
   "license": "ISC",
-  "types": "./index.d.ts"
+  "dependencies": {
+    "react-native": "^0.74.1"
+  }
 }

@@ -21,7 +21,7 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths:
-            - ./index.js
+            - ./index.ts
             - ./index.d.ts
             - ./package.json
             - ./react-native.config.js
