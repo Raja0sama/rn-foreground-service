@@ -197,6 +197,7 @@ const start = async ({
   progress,
   color,
   setOnlyAlertOnce,
+  ongoing
 }) => {
   try {
     if (!serviceRunning) {
@@ -222,6 +223,7 @@ const start = async ({
         progressBarCurr: progress?.curr,
         color,
         setOnlyAlertOnce,
+        ongoing
       });
       serviceRunning = true;
       await ForegroundService.runTask({
@@ -256,6 +258,7 @@ const update = async ({
   progress,
   color,
   setOnlyAlertOnce,
+  ongoing
 }) => {
   try {
     await ForegroundService.updateNotification({
@@ -280,6 +283,7 @@ const update = async ({
       progressBarCurr: progress?.curr,
       setOnlyAlertOnce,
       color,
+      ongoing
     });
     if (!serviceRunning) {
       serviceRunning = true;
