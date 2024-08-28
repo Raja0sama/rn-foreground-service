@@ -1,4 +1,4 @@
-package com.supersami.foregroundservice;
+package com.tikotas.foregroundservice;
 
 import android.app.Activity;
 import android.content.Intent;

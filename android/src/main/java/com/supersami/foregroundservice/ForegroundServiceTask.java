@@ -1,4 +1,4 @@
-package com.supersami.foregroundservice;
+package com.tikotas.foregroundservice;
 
 import android.app.Notification;
 import android.app.Service;
@@ -12,7 +12,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 import javax.annotation.Nullable;
 
-import static com.supersami.foregroundservice.Constants.NOTIFICATION_CONFIG;
+import static com.tikotas.foregroundservice.Constants.NOTIFICATION_CONFIG;
 
 
 // https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/HeadlessJsTaskService.java

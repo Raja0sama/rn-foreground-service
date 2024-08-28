@@ -1,4 +1,4 @@
-package com.supersami.foregroundservice;
+package com.tikotas.foregroundservice;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -11,8 +11,8 @@ import android.util.Log;
 
 import com.facebook.react.HeadlessJsTaskService;
 
-import static com.supersami.foregroundservice.Constants.NOTIFICATION_CONFIG;
-import static com.supersami.foregroundservice.Constants.TASK_CONFIG;
+import static com.tikotas.foregroundservice.Constants.NOTIFICATION_CONFIG;
+import static com.tikotas.foregroundservice.Constants.TASK_CONFIG;
 
 
 // NOTE: headless task will still block the UI so don't do heavy work, but this is also good

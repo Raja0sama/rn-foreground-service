@@ -1,9 +1,9 @@
 {
-  "name": "@supersami/rn-foreground-service",
-  "version": "2.1.0",
+  "name": "rn-foreground-service-v",
+  "version": "2.1.1",
   "description": "A Foreground Service for React Native",
   "main": "index.js",
-  "repository": "Raja0sama/rn-foreground-service",
+  "repository": "https://github.com/tikotas/rn-foreground-service",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "node postinstall.js"
@@ -18,7 +18,7 @@
     "background"
   ],
   "author": {
-    "name": "Raja Osama (supersami)"
+    "name": "tikotas"
   },
   "peerDependencies": {
     "react-native": ">=0.59.0"

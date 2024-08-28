@@ -2,7 +2,7 @@ module.exports = {
     dependency: {
         platforms: {
             android: {
-                packageImportPath: 'import com.supersami.foregroundservice.ForegroundServicePackage;',
+                packageImportPath: 'import com.tikotas.foregroundservice.ForegroundServicePackage;',
                 packageInstance: 'new ForegroundServicePackage()',
             },
         },

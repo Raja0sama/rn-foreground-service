@@ -1,4 +1,4 @@
-package com.supersami.foregroundservice;
+package com.tikotas.foregroundservice;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -13,9 +13,9 @@ import android.util.Log;
 
 class NotificationConfig {
 
-    private static final String KEY_CHANNEL_NAME = "com.supersami.foregroundservice.notification_channel_name";
-    private static final String KEY_CHANNEL_DESCRIPTION = "com.supersami.foregroundservice.notification_channel_description";
-    private static final String KEY_NOTIFICATION_COLOR = "com.supersami.foregroundservice.notification_color";
+    private static final String KEY_CHANNEL_NAME = "com.tikotas.foregroundservice.notification_channel_name";
+    private static final String KEY_CHANNEL_DESCRIPTION = "com.tikotas.foregroundservice.notification_channel_description";
+    private static final String KEY_NOTIFICATION_COLOR = "com.tikotas.foregroundservice.notification_color";
 
     private static Bundle metadata;
     private Context context;
@@ -41,7 +41,7 @@ class NotificationConfig {
             Log.w("NotificationConfig", "Unable to find " + KEY_CHANNEL_NAME + " in manifest. Falling back to default");
         }
         // Default
-        return "com.supersami.foregroundservice";
+        return "com.tikotas.foregroundservice";
     }
 
     public String getChannelDescription() {
@@ -51,7 +51,7 @@ class NotificationConfig {
             Log.w("NotificationConfig", "Unable to find " + KEY_CHANNEL_DESCRIPTION + " in manifest. Falling back to default");
         }
         // Default
-        return "com.supersami.foregroundservice";
+        return "com.tikotas.foregroundservice";
     }
 
     public int getNotificationColor() {

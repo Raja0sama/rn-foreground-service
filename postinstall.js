@@ -2,19 +2,19 @@ const fs = require("fs");
 
 const metadataTemplate = `
   <meta-data
-    android:name="com.supersami.foregroundservice.notification_channel_name"
+    android:name="com.tikotas.foregroundservice.notification_channel_name"
     android:value="Sticky Title"
   />
   <meta-data
-    android:name="com.supersami.foregroundservice.notification_channel_description"
+    android:name="com.tikotas.foregroundservice.notification_channel_description"
     android:value="Sticky Description."
   />
   <meta-data
-    android:name="com.supersami.foregroundservice.notification_color"
+    android:name="com.tikotas.foregroundservice.notification_color"
     android:resource="@color/blue"
   />
-  <service android:name="com.supersami.foregroundservice.ForegroundService"></service>
-  <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service>
+  <service android:name="com.tikotas.foregroundservice.ForegroundService"></service>
+  <service android:name="com.tikotas.foregroundservice.ForegroundServiceTask"></service>
 `;
 
 const androidManifestPath = `${process.cwd()}/android/app/src/main/AndroidManifest.xml`;
