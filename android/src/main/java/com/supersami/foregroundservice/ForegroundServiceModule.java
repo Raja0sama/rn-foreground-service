@@ -66,6 +66,11 @@ public class ForegroundServiceModule extends ReactContextBaseJavaModule {
             return;
         }
 
+        if (!notificationConfig.hasKey("ServiceType")) {
+            promise.reject(ERROR_INVALID_CONFIG, "ForegroundService: ServiceType is required");
+            return;
+        }
+
         try{
             Intent intent = new Intent(getReactApplicationContext(), ForegroundService.class);
             intent.setAction(Constants.ACTION_FOREGROUND_SERVICE_START);

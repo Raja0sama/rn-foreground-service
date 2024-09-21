@@ -13,8 +13,8 @@ const metadataTemplate = `
     android:name="com.supersami.foregroundservice.notification_color"
     android:resource="@color/blue"
   />
-  <service android:name="com.supersami.foregroundservice.ForegroundService" android:foregroundServiceType="location"></service>
-  <service android:name="com.supersami.foregroundservice.ForegroundServiceTask" android:foregroundServiceType="location"></service>
+  <service android:name="com.supersami.foregroundservice.ForegroundService"></service> // define android:foregroundServiceType="" according to your use case
+  <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service> // define android:foregroundServiceType="" according to your use case
 `;
 
 const androidManifestPath = `${process.cwd()}/android/app/src/main/AndroidManifest.xml`;

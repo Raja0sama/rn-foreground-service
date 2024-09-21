@@ -76,13 +76,15 @@ public class ForegroundService extends Service {
     private boolean startService(Bundle notificationConfig){
         try {
             int id = (int)notificationConfig.getDouble("id");
+            String foregroundServiceType = notificationConfig.getString("ServiceType");
+
 
             Notification notification = NotificationHelper
                 .getInstance(getApplicationContext())
                 .buildNotification(getApplicationContext(), notificationConfig);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION); //https://developer.android.com/about/versions/14/changes/fgs-types-required
+                startForeground(id, notification, ServiceInfo.Constants.foregroundServiceType); //https://developer.android.com/about/versions/14/changes/fgs-types-required
             } else {
                 startForeground(id, notification);
             }
