@@ -84,7 +84,8 @@ public class ForegroundService extends Service {
                 .buildNotification(getApplicationContext(), notificationConfig);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(id, notification, ServiceInfo.Constants.foregroundServiceType); //https://developer.android.com/about/versions/14/changes/fgs-types-required
+                int serviceType = mapServiceType(foregroundServiceType);
+                startForeground(id, notification, serviceType); //https://developer.android.com/about/versions/14/changes/fgs-types-required
             } else {
                 startForeground(id, notification);
             }
@@ -102,6 +103,43 @@ public class ForegroundService extends Service {
             return false;
         }
     }
+
+
+    private int mapServiceType(String customServiceType) {
+    switch (customServiceType) {
+        case "camera":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+        case "connectedDevice":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE;
+        case "dataSync":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
+        case "health":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH;
+        case "location":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
+        case "mediaPlayback":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
+        case "mediaProjection":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION;
+        case "microphone":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+        case "phoneCall":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL;
+        case "remoteMessaging":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING;
+        case "shortService":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE;
+        case "specialUse":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+        case "systemExempted":
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED;                        
+  
+        default:
+            throw new IllegalArgumentException("Unknown foreground service type: " + customServiceType);
+    }
+}
+
+
     public  Bundle taskConfig;
     private Handler handler = new Handler();
     private Runnable runnableCode = new Runnable() {
