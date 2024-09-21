@@ -1,7 +1,6 @@
 const fs = require("fs");
 
 const foregroundServicePermTemplate = `
-
  <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare permission like this according to your use case https://developer.android.com/about/versions/14/changes/fgs-types-required -->
 `;
 const metadataTemplate = `
@@ -35,7 +34,7 @@ fs.readFile(androidManifestPath, "utf8", function (err, data) {
 
     const result = data.replace(
       reg,
-      `${content}${foregroundServicePermTemplate}`
+      `${content}\n${foregroundServicePermTemplate}`
     );
     console.log({ result });
 
