@@ -1,5 +1,9 @@
 const fs = require("fs");
 
+const foregroundServicePermTemplate = `
+
+ <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare permission like this according to your use case https://developer.android.com/about/versions/14/changes/fgs-types-required -->
+`;
 const metadataTemplate = `
   <meta-data
     android:name="com.supersami.foregroundservice.notification_channel_name"
@@ -13,7 +17,7 @@ const metadataTemplate = `
     android:name="com.supersami.foregroundservice.notification_color"
     android:resource="@color/blue"
   />
-  <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare permission like this according to your use case https://developer.android.com/about/versions/14/changes/fgs-types-required -->
+ 
   <service android:name="com.supersami.foregroundservice.ForegroundService"></service> // also define android:foregroundServiceType="" according to your use case
   <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service> // also define android:foregroundServiceType="" according to your use case
 `;
@@ -23,6 +27,21 @@ const androidManifestPath = `${process.cwd()}/android/app/src/main/AndroidManife
 fs.readFile(androidManifestPath, "utf8", function (err, data) {
   if (err) {
     return console.log(err);
+  }
+
+  if (!data.includes(foregroundServicePermTemplate)) {
+    const reg = /<manifest[^>]*>/;
+    const content = reg.exec(data)[0];
+
+    const result = data.replace(
+      reg,
+      `${content}${foregroundServicePermTemplate}`
+    );
+    console.log({ result });
+
+    fs.writeFile(androidManifestPath, result, "utf8", function (err) {
+      if (err) return console.log(err);
+    });
   }
 
   if (!data.includes(metadataTemplate)) {
