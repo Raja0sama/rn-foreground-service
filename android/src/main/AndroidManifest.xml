@@ -3,7 +3,7 @@
           package="com.supersami.foregroundservice">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> <!--https://developer.android.com/about/versions/14/changes/fgs-types-required-->
+ <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare like this https://developer.android.com/about/versions/14/changes/fgs-types-required -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
         <application>
 
