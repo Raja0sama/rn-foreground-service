@@ -13,8 +13,9 @@ const metadataTemplate = `
     android:name="com.supersami.foregroundservice.notification_color"
     android:resource="@color/blue"
   />
-  <service android:name="com.supersami.foregroundservice.ForegroundService"></service> // define android:foregroundServiceType="" according to your use case
-  <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service> // define android:foregroundServiceType="" according to your use case
+  <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare permission like this according to your use case https://developer.android.com/about/versions/14/changes/fgs-types-required -->
+  <service android:name="com.supersami.foregroundservice.ForegroundService"></service> // also define android:foregroundServiceType="" according to your use case
+  <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service> // also define android:foregroundServiceType="" according to your use case
 `;
 
 const androidManifestPath = `${process.cwd()}/android/app/src/main/AndroidManifest.xml`;
