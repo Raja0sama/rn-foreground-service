@@ -10,6 +10,7 @@ const ForegroundServiceModule = NativeModules.ForegroundService;
  * @property {number} id - Unique notification id
  * @property {string} title - Notification title
  * @property {string} message - Notification message
+ * @property {string} ServiceType - Foreground service types are Mandatory in Android 14
  * @property {string} number - int specified as string > 0, for devices that support it, this might be used to set the badge counter
  * @property {string} icon - Small icon name | ic_notification
  * @property {string} largeIcon - Large icon name | ic_launcher
@@ -181,6 +182,7 @@ const start = async ({
   id,
   title = id,
   message = "Foreground Service Running...",
+  ServiceType,
   vibration = false,
   visibility = "public",
   icon = "ic_notification",
@@ -204,6 +206,7 @@ const start = async ({
         id,
         title,
         message,
+        ServiceType,
         vibration,
         visibility,
         icon,
@@ -240,6 +243,7 @@ const update = async ({
   id,
   title = id,
   message = "Foreground Service Running...",
+  ServiceType,
   vibration = false,
   visibility = "public",
   largeIcon = "ic_launcher",
@@ -262,6 +266,7 @@ const update = async ({
       id,
       title,
       message,
+      ServiceType,
       vibration,
       visibility,
       largeIcon,
