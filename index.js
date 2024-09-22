@@ -3,6 +3,7 @@ import {
   AppRegistry,
   DeviceEventEmitter,
   NativeEventEmitter,
+  Alert
 } from 'react-native';
 
 // ANDROID ONLY
