@@ -1,6 +1,7 @@
 const fs = require("fs");
 
 const foregroundServicePermTemplate = `
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
  <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare permission like this according to your use case https://developer.android.com/about/versions/14/changes/fgs-types-required -->
 `;
 const metadataTemplate = `
@@ -36,8 +37,6 @@ fs.readFile(androidManifestPath, "utf8", function (err, data) {
       reg,
       `${content}\n${foregroundServicePermTemplate}`
     );
-    console.log({ result });
-
     fs.writeFile(androidManifestPath, result, "utf8", function (err) {
       if (err) return console.log(err);
     });
