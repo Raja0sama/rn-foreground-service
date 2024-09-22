@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 
 const foregroundServicePermTemplate = `
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -56,41 +57,45 @@ fs.readFile(androidManifestPath, "utf8", function (err, data) {
 });
 
 const colorTemplate = `
-  <item  name="blue"  type="color">#00C4D1
-  </item>
-  <integer-array  name="androidcolors">
-  <item>@color/blue</item>
+  <item name="blue" type="color">#00C4D1</item>
+  <integer-array name="androidcolors">
+    <item>@color/blue</item>
   </integer-array>
 `;
 
 const colorFilePath = `${process.cwd()}/android/app/src/main/res/values/colors.xml`;
 
-fs.readFile(colorFilePath, "utf8", function (err, data) {
-  if (err) {
-    return console.error(err);
-  }
+// Ensure the directory exists
+const dirPath = path.dirname(colorFilePath);
+fs.mkdirSync(dirPath, { recursive: true });
 
-  const reg = /<resources[^>]*>/;
-  const content = reg.exec(data)?.[0];
-
-  if (!content) {
-    fs.writeFile(
-      colorFilePath,
-      `<resources>${colorTemplate}</resources>`,
-      "utf8",
-      function (err) {
-        return console.error(err);
-      }
-    );
-  }
-
-  const result = data.replace(reg, `${content}${colorTemplate}`);
-
-  fs.writeFile(colorFilePath, result, "utf8", function (err) {
-    if (err) {
-      return console.log(err);
-    }
-  });
-
+// Check if the file exists
+if (!fs.existsSync(colorFilePath)) {
+  // Create the file with initial content if it doesn't exist
+  fs.writeFileSync(colorFilePath, `<resources>${colorTemplate}</resources>`, "utf8");
   console.log(`Successfully created color file at ${colorFilePath}`);
-});
+} else {
+  // Read and update the file if it exists
+  fs.readFile(colorFilePath, "utf8", function (err, data) {
+    if (err) {
+      return console.error(`Error reading file: ${err}`);
+    }
+
+    const reg = /<resources[^>]*>/;
+    const content = reg.exec(data)?.[0];
+
+    let result;
+    if (!content) {
+      result = `<resources>${colorTemplate}</resources>`;
+    } else {
+      result = data.replace(reg, `${content}${colorTemplate}`);
+    }
+
+    fs.writeFile(colorFilePath, result, "utf8", function (err) {
+      if (err) {
+        return console.error(`Error writing file: ${err}`);
+      }
+      console.log(`Successfully updated color file at ${colorFilePath}`);
+    });
+  });
+}
