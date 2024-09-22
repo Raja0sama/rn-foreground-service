@@ -57,21 +57,41 @@ fs.readFile(androidManifestPath, "utf8", function (err, data) {
 });
 
 const colorTemplate = `
-  <resources>
-    <item  name="blue"  type="color">#00C4D1
-    </item>
-    <integer-array  name="androidcolors">
-    <item>@color/blue</item>
-    </integer-array>
-  </resources>
+  <item  name="blue"  type="color">#00C4D1
+  </item>
+  <integer-array  name="androidcolors">
+  <item>@color/blue</item>
+  </integer-array>
 `;
 
 const colorFilePath = `${process.cwd()}/android/app/src/main/res/values/colors.xml`;
 
-fs.writeFile(colorFilePath, colorTemplate, "utf8", function (err) {
+fs.readFile(colorFilePath, "utf8", function (err, data) {
   if (err) {
-    return console.log(err);
+    return console.error(err);
   }
+
+  const reg = /<resources[^>]*>/;
+  const content = reg.exec(data)?.[0];
+
+  if (!content) {
+    fs.writeFile(
+      colorFilePath,
+      `<resources>${colorTemplate}</resources>`,
+      "utf8",
+      function (err) {
+        return console.error(err);
+      }
+    );
+  }
+
+  const result = data.replace(reg, `${content}${colorTemplate}`);
+
+  fs.writeFile(colorFilePath, result, "utf8", function (err) {
+    if (err) {
+      return console.log(err);
+    }
+  });
 
   console.log(`Successfully created color file at ${colorFilePath}`);
 });
