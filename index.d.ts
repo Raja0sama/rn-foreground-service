@@ -4,6 +4,7 @@ declare const ReactNativeForegroundService: {
     id,
     title,
     message,
+    ServiceType,
     vibration,
     visibility,
     icon,
@@ -24,6 +25,7 @@ declare const ReactNativeForegroundService: {
     id: any;
     title?: any;
     message?: string | undefined;
+    ServiceType?: string | undefined;
     vibration?: boolean | undefined;
     visibility?: string | undefined;
     icon?: string | undefined;
@@ -48,6 +50,7 @@ declare const ReactNativeForegroundService: {
     id,
     title,
     message,
+    ServiceType,
     vibration,
     visibility,
     largeIcon,
@@ -68,6 +71,7 @@ declare const ReactNativeForegroundService: {
     id: any;
     title?: any;
     message?: string | undefined;
+    ServiceType?: string | undefined;
     vibration?: boolean | undefined;
     visibility?: string | undefined;
     largeIcon?: string | undefined;
