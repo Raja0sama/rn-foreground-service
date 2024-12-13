@@ -95,7 +95,8 @@ declare const ReactNativeForegroundService: {
     color?: string;
     setOnlyAlertOnce?: string;
   }) => Promise<void>;
-  stop: () => Promise<any>;
+  pause: () => Promise<any>;
+  stop: (resetTaskNextExecutionTime?: boolean | null | undefined, taskId?: string) => Promise<any>;
   stopAll: () => Promise<any>;
   is_running: () => boolean;
   add_task: (

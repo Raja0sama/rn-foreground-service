@@ -311,14 +311,55 @@ const update = async ({
   }
 };
 
-const stop = () => {
+/**
+ * handler to reset tasks next execution time to now when the service is stopped
+ * @param {string} taskId 
+ */
+const reset_tasks_next_execution_time = (taskId) => {
+  const now = Date.now();
+
+  for (const [id, task] of Object.entries(tasks)) {
+    if (taskId && taskId === id) {
+      // reset just the targetTask
+      task.nextExecutionTime = now;
+    } else if (!taskId) {
+      // reset all tasks
+      task.nextExecutionTime = now;
+    }
+  }
+};
+
+/**
+ * handler to pause the service without resetting tasks next execution time
+ */
+const pause = () => {
   serviceRunning = false;
   return ForegroundService.stopService();
 };
+
+/**
+ * stop the service and optionally stop reset tasks next execution time if needed and also stop the task by taskId if provided
+ * @param {boolean} resetTaskNextExecutionTime 
+ * @param {string} taskId 
+ */
+const stop = (resetTaskNextExecutionTime = true, taskId) => {
+  if (!resetTaskNextExecutionTime) {
+    reset_tasks_next_execution_time(taskId);
+  }
+
+  serviceRunning = false;
+  return ForegroundService.stopService();
+};
+
+/**
+ * stop all services and reset tasks next execution time to now for immediate run tasks when start again
+ */
 const stopAll = () => {
+  reset_tasks_next_execution_time();
   serviceRunning = false;
   return ForegroundService.stopServiceAll();
 };
+
 const is_running = () => serviceRunning;
 
 const add_task = (
@@ -404,7 +445,7 @@ export function setupServiceErrorListener({onServiceFailToStart, alert}) {
     if (onServiceFailToStart) {
       onServiceFailToStart();
     }
-    stop();
+    pause();
   });
 
   return () => {
@@ -416,6 +457,7 @@ const ReactNativeForegroundService = {
   register,
   start,
   update,
+  pause,
   stop,
   stopAll,
   is_running,
