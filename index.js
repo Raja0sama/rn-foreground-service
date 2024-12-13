@@ -5,7 +5,21 @@ import {
   NativeEventEmitter,
   Alert
 } from 'react-native';
-import { NotificationImportance, NotificationVisibility } from '.';
+
+const NotificationImportance = Object.freeze({
+  NONE: 'none',
+  MIN: 'min',
+  LOW: 'low',
+  DEFAULT: 'default',
+  HIGH: 'high',
+  MAX: 'max',
+})
+
+const NotificationVisibility = Object.freeze({
+  PRIVATE: 'private',
+  PUBLIC: 'public',
+  SECRET: 'secret',
+});
 
 /**
  * @typedef {Object} IForegroundServiceModuleHandlers
@@ -38,9 +52,9 @@ const ForegroundServiceModule = NativeModules.ForegroundService;
  * @property {string} number - int specified as string > 0, for devices that support it, this might be used to set the badge counter
  * @property {string} icon - Small icon name | ic_notification
  * @property {string} largeIcon - Large icon name | ic_launcher
- * @property {NotificationVisibility} visibility - private | public | secret
+ * @property {typeof NotificationVisibility} visibility - private | public | secret
  * @property {boolean} ongoing - true/false if the notification is ongoing. The notification the service was started with will always be ongoing
- * @property {NotificationImportance} [importance] - Importance (and priority for older devices) of this notification. This might affect notification sound One of:
+ * @property {typeof NotificationImportance} [importance] - Importance (and priority for older devices) of this notification. This might affect notification sound One of:
  *                                                  none - IMPORTANCE_NONE (by default),
  *                                                  min - IMPORTANCE_MIN,
  *                                                  low - IMPORTANCE_LOW,
@@ -89,10 +103,10 @@ const ForegroundServiceModule = NativeModules.ForegroundService;
  * @property {string} [message] - Message body of the notification.
  * @property {string} ServiceType - Type of service. Mandatory in Android 14.
  * @property {boolean} [vibration] - Specifies whether the notification should trigger vibration.
- * @property {NotificationVisibility} [visibility] - Visibility of the notification. Options: "private", "public", or "secret".
+ * @property {typeof NotificationVisibility} [visibility] - Visibility of the notification. Options: "private", "public", or "secret".
  * @property {string} [icon] - Name of the small icon for the notification.
  * @property {string} [largeIcon] - Name of the large icon for the notification.
- * @property {NotificationImportance} [importance] - Importance level of the notification. Options: "none", "min", "low", "default", "high", "max".
+ * @property {typeof NotificationImportance} [importance] - Importance level of the notification. Options: "none", "min", "low", "default", "high", "max".
  * @property {string} [number] - String representation of a number, used for badge counters on supporting devices.
  * @property {boolean} [button] - Indicates if a primary button is displayed on the notification.
  * @property {string} [buttonText] - Text label for the primary button.
