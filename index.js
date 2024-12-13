@@ -431,7 +431,7 @@ const pause = () => {
  * @param {string} taskId 
  */
 const stop = (resetTaskNextExecutionTime = true, taskId) => {
-  if (!resetTaskNextExecutionTime) {
+  if (resetTaskNextExecutionTime) {
     reset_tasks_next_execution_time(taskId);
   }
 
