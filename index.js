@@ -5,14 +5,32 @@ import {
   NativeEventEmitter,
   Alert
 } from 'react-native';
+import { NotificationImportance, NotificationVisibility } from '.';
+
+/**
+ * @typedef {Object} IForegroundServiceModuleHandlers
+ * @property {function(INotificationConfig): Promise<void>} startService - Starts a service with the provided notification configuration.
+ * @property {function(INotificationConfig): Promise<void>} updateNotification - Updates an existing notification with the given configuration.
+ * @property {function({id: number}): Promise<void>} cancelNotification - Cancels a notification using its unique ID.
+ * @property {function(): Promise<void>} stopService - Stops the current service.
+ * @property {function(): Promise<void>} stopServiceAll - Stops all running services.
+ * @property {function(ITaskConfig): Promise<void>} runTask - Executes a task with the specified task configuration.
+ * @property {function(): Promise<boolean>} isRunning - Checks if the service is currently running.
+ */
+
 
 // ANDROID ONLY
 // Copied and adapted from https://github.com/voximplant/react-native-foreground-service
 // and https://github.com/zo0r/react-native-push-notification/
 
+/**
+ * @type {import('react-native').NativeModule & IForegroundServiceModuleHandlers} TaskConfig
+ */
 const ForegroundServiceModule = NativeModules.ForegroundService;
 
+
 /**
+ * @typedef {Object} INotificationConfig
  * @property {number} id - Unique notification id
  * @property {string} title - Notification title
  * @property {string} message - Notification message
@@ -20,24 +38,75 @@ const ForegroundServiceModule = NativeModules.ForegroundService;
  * @property {string} number - int specified as string > 0, for devices that support it, this might be used to set the badge counter
  * @property {string} icon - Small icon name | ic_notification
  * @property {string} largeIcon - Large icon name | ic_launcher
- * @property {string} visibility - private | public | secret
+ * @property {NotificationVisibility} visibility - private | public | secret
  * @property {boolean} ongoing - true/false if the notification is ongoing. The notification the service was started with will always be ongoing
- * @property {number} [importance] - Importance (and priority for older devices) of this notification. This might affect notification sound One of:
- *                                  none - IMPORTANCE_NONE (by default),
- *                               min - IMPORTANCE_MIN,
- *                               low - IMPORTANCE_LOW,
- *                               default - IMPORTANCE_DEFAULT
- *                               high - IMPORTANCE_HIGH,
- *                               max - IMPORTANCE_MAX
+ * @property {NotificationImportance} [importance] - Importance (and priority for older devices) of this notification. This might affect notification sound One of:
+ *                                                  none - IMPORTANCE_NONE (by default),
+ *                                                  min - IMPORTANCE_MIN,
+ *                                                  low - IMPORTANCE_LOW,
+ *                                                  default - IMPORTANCE_DEFAULT
+ *                                                  high - IMPORTANCE_HIGH,
+ *                                                  max - IMPORTANCE_MAX
+ * @property {boolean} [vibration] - Enable / Disable vibration.
+ * @property {boolean} [button] - Show a primary button if needed.
+ * @property {string} [buttonText] - Text for the primary button.
+ * @property {string} [buttonOnPress] - Function name or callback identifier for the primary button action.
+ * @property {boolean} [button2] - Show a secondary button is displayed.
+ * @property {string} [button2Text] - Text for the secondary button.
+ * @property {string} [button2OnPress] - Function name or callback identifier for the secondary button action.
+ * @property {string} [mainOnPress] - Function name or callback identifier for the main notification click action.
+ * @property {boolean} [progressBar] - Indicates if a progress bar should be shown.
+ * @property {number} [progressBarMax] - Maximum value for the progress bar.
+ * @property {number} [progressBarCurr] - Current value of the progress bar.
+ * @property {string} [color] - Color to be used for the notification accent.
+ * @property {string} [setOnlyAlertOnce] - If set, the notification will only alert once and not repeatedly for updates.
  */
-const NotificationConfig = {};
+
 
 /**
- * @property {string} taskName - name of the js task configured with registerForegroundTask
- * @property {number} delay - start task in delay miliseconds, use 0 to start immediately
- * ... any other values passed to the task as well
+ * @typedef {Object} ITaskConfig
+ * @property {string} taskName - Name of the JavaScript task configured with `registerForegroundTask`.
+ * @property {number} delay - Start task after a delay, in milliseconds.
+ * @property {number} loopDelay - Time delay between task executions in loop mode, in milliseconds.
+ * @property {boolean} onLoop - Indicates whether the task should execute repeatedly in a loop.
  */
-const TaskConfig = {};
+
+/**
+ * @typedef {Object} ITask
+ * @property {number} nextExecutionTime - Timestamp indicating the next scheduled execution time for the task, in milliseconds since the epoch.
+ * @property {() => Promise<any>} task - The task handler function responsible for executing the task logic.
+ * @property {function(): void} onSuccess - Callback executed when the task completes successfully.
+ * @property {function(any): void} onError - Callback executed when the task encounters an error. Receives the error object as a parameter.
+ * @property {boolean} onLoop - Indicates whether the task should run repeatedly in a loop.
+ * @property {number} delay - Delay in milliseconds before the task starts or repeats.
+ * @property {string} taskId - Unique identifier for the task.
+ */
+
+/**
+ * @typedef {Object} IStartOptions
+ * @property {string} id - Unique identifier for the notification.
+ * @property {string} [title] - Title of the notification.
+ * @property {string} [message] - Message body of the notification.
+ * @property {string} ServiceType - Type of service. Mandatory in Android 14.
+ * @property {boolean} [vibration] - Specifies whether the notification should trigger vibration.
+ * @property {NotificationVisibility} [visibility] - Visibility of the notification. Options: "private", "public", or "secret".
+ * @property {string} [icon] - Name of the small icon for the notification.
+ * @property {string} [largeIcon] - Name of the large icon for the notification.
+ * @property {NotificationImportance} [importance] - Importance level of the notification. Options: "none", "min", "low", "default", "high", "max".
+ * @property {string} [number] - String representation of a number, used for badge counters on supporting devices.
+ * @property {boolean} [button] - Indicates if a primary button is displayed on the notification.
+ * @property {string} [buttonText] - Text label for the primary button.
+ * @property {'buttonOnPress'} [buttonOnPress] - Identifier or action for the primary button press.
+ * @property {boolean} [button2] - Indicates if a secondary button is displayed on the notification.
+ * @property {string} [button2Text] - Text label for the secondary button.
+ * @property {'button2OnPress'} [button2OnPress] - Identifier or action for the secondary button press.
+ * @property {'mainOnPress'} [mainOnPress] - Identifier or action for the main notification click event.
+ * @property {Object} [progress] - Progress bar configuration.
+ * @property {number} progress.max - Maximum value of the progress bar.
+ * @property {number} progress.curr - Current value of the progress bar.
+ * @property {string} [color] - Accent color for the notification.
+ * @property {string} [setOnlyAlertOnce] - If set, the notification will alert only once and not repeatedly for updates.
+ */
 
 class ForegroundService {
   /**
@@ -56,7 +125,7 @@ class ForegroundService {
    * Multiple calls won't start multiple instances of the service, but will increase its internal counter
    * so calls to stop won't stop until it reaches 0.
    * Note: notificationConfig can't be re-used (becomes immutable)
-   * @param {NotificationConfig} notificationConfig - Notification config
+   * @param {INotificationConfig} notificationConfig - Notification config
    * @return Promise
    */
   static async startService(notificationConfig) {
@@ -70,7 +139,7 @@ class ForegroundService {
    * Note: this method might fail if called right after starting the service
    * since the service might not be yet ready.
    * If service is not running, it will be started automatically like calling startService.
-   * @param {NotificationConfig} notificationConfig - Notification config
+   * @param {INotificationConfig} notificationConfig - Notification config
    * @return Promise
    */
   static async updateNotification(notificationConfig) {
@@ -115,7 +184,7 @@ class ForegroundService {
    * if the service is still spinning up.
    * If the service is not running because it was killed, it will be attempted to be started again
    * using the last notification available.
-   * @param {TaskConfig} taskConfig - Notification config
+   * @param {ITaskConfig} taskConfig - Notification config
    * @return Promise
    */
   static async runTask(taskConfig) {
@@ -141,7 +210,10 @@ const randHashString = len => {
   });
 };
 
-//initial state
+// =========== > initial state <==========
+/**
+ * @type {{[taskId: string]: ITask}}
+ */
 let tasks = {};
 const samplingInterval = 500; //ms
 let serviceRunning = false;
@@ -178,27 +250,38 @@ const taskRunner = async () => {
     console.log('Error in FgService taskRunner:', error);
   }
 };
-
+/**
+ * Registers a foreground task 
+ * @param {Object} param - The configuration object for registration.
+ * @param {Object} param.config - Configuration details for the registration process.
+ * @param {boolean} param.config.alert - Indicates whether alerts should be enabled for the service.
+ * @param {function(): void} param.config.onServiceErrorCallBack - Callback function invoked when a service error occurs.
+ */
 const register = ({config: {alert, onServiceErrorCallBack}}) => {
   if (!serviceRunning) {
     setupServiceErrorListener({
       alert,
       onServiceFailToStart: onServiceErrorCallBack,
     });
+    
     return ForegroundService.registerForegroundTask('myTaskName', taskRunner);
   }
 };
 
+/**
+ * start the foreground service
+ * @param {IStartOptions} param0 
+ */
 const start = async ({
   id,
   title = id,
   message = 'Foreground Service Running...',
   ServiceType,
   vibration = false,
-  visibility = 'public',
+  visibility = NotificationVisibility.PUBLIC,
   icon = 'ic_notification',
   largeIcon = 'ic_launcher',
-  importance = 'max',
+  importance = NotificationImportance.MAX,
   number = '1',
   button = false,
   buttonText = '',
@@ -250,16 +333,21 @@ const start = async ({
   }
 };
 
+
+/**
+ * update the foreground service
+ * @param {IStartOptions} param0 
+ */
 const update = async ({
   id,
   title = id,
   message = 'Foreground Service Running...',
   ServiceType,
   vibration = false,
-  visibility = 'public',
+  visibility = NotificationVisibility.PUBLIC,
   largeIcon = 'ic_launcher',
   icon = 'ic_launcher',
-  importance = 'max',
+  importance = NotificationImportance.MAX,
   number = '0',
   button = false,
   buttonText = '',
