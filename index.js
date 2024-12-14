@@ -232,6 +232,11 @@ let tasks = {};
 const samplingInterval = 500; //ms
 let serviceRunning = false;
 
+// update `serviceRunning` status directly from the main thread
+ForegroundService.isRunning().then(isRunning => {
+  serviceRunning = !!isRunning;
+});
+
 const deleteTask = taskId => {
   delete tasks[taskId];
 };
