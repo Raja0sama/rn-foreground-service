@@ -27,7 +27,14 @@ In your root, Index.js file. Paste the following code.
 
 ```javascript
 import ReactNativeForegroundService from "@supersami/rn-foreground-service";
-ReactNativeForegroundService.register();
+ReactNativeForegroundService.register({
+  config: {
+    alert: true,
+    onServiceErrorCallBack: () => {
+      console.error("Foreground service error occurred");
+    },
+  }
+})
 ```
 
 The above code will register a initial headless task, which will be a first layer, over which, you can add as many task as you desire and they all will execute seamlessly.
