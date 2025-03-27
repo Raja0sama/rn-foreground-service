@@ -49,7 +49,7 @@ declare const ReactNativeForegroundService: {
       curr: number;
     };
     color?: string;
-    setOnlyAlertOnce?: string;
+    setOnlyAlertOnce?: boolean;
   }) => Promise<void>;
   update: ({
     id,
@@ -93,7 +93,7 @@ declare const ReactNativeForegroundService: {
       curr: number;
     };
     color?: string;
-    setOnlyAlertOnce?: string;
+    setOnlyAlertOnce?: boolean;
   }) => Promise<void>;
   stop: () => Promise<any>;
   stopAll: () => Promise<any>;

@@ -154,7 +154,11 @@ public class ForegroundService extends Service {
         public void run() {
             final Intent service = new Intent(getApplicationContext(), ForegroundServiceTask.class);
             service.putExtras(taskConfig);
-            getApplicationContext().startService(service);
+            try {
+                getApplicationContext().startService(service);
+            } catch (Exception e) {
+                Log.e("ForegroundService", "Failed to start foreground service in loop: " + e.getMessage());
+            }
 
             int delay = (int) taskConfig.getDouble("delay");
 
@@ -281,7 +285,11 @@ public class ForegroundService extends Service {
         int delay = (int) bundle.getDouble("delay");
 
         if (delay <= 0) {
-            getApplicationContext().startService(service);
+            try {
+                getApplicationContext().startService(service);
+            } catch (Exception e) {
+                Log.e("ForegroundService", "Failed to start delayed headless task: " + e.getMessage());
+            }
 
             // wakelock should be released automatically by the task
             // Shouldn't be needed, it's called automatically by headless

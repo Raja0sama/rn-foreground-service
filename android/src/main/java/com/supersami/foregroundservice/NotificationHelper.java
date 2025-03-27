@@ -44,12 +44,13 @@ class NotificationHelper {
     }
 
 
-    Notification buildNotification(Context context, Bundle bundle) {
+    Notification buildNotification(Context context, Bundle bundle) throws ClassNotFoundException {  {
         if (bundle == null) {
             Log.e("NotificationHelper", "buildNotification: invalid config");
             return null;
         }
-        Class mainActivityClass = getMainActivityClass(context);
+        String packageName = context.getPackageName();
++       Class<?> mainActivityClass = Class.forName(packageName + ".MainActivity");
         if (mainActivityClass == null) {
             return null;
         }
@@ -197,8 +198,8 @@ class NotificationHelper {
             notificationBuilder.setProgress((int)max, (int)curr,false);
         }
 
-        notificationBuilder.setOnlyAlertOnce(true);
-
+        Boolean setOnlyAlertOnce = bundle.getBoolean("setOnlyAlertOnce");
++       notificationBuilder.setOnlyAlertOnce(setOnlyAlertOnce);
 
         return notificationBuilder.build();
     }
