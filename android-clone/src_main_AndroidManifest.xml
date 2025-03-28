@@ -1,0 +1,20 @@
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.supersami.foregroundservice">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+        <application>
+
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTask"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+        </application>
+</manifest>

@@ -1,11 +1,31 @@
 const fs = require("fs");
 const path = require("path");
 
+// Define foreground service permissions with clearer structure for Android 13+
 const foregroundServicePermTemplate = `
+    <!-- Base foreground service permissions -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
- <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/> declare permission like this according to your use case https://developer.android.com/about/versions/14/changes/fgs-types-required -->
+    
+    <!-- Uncomment specific foreground service type permissions based on your needs -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" /> -->
 `;
+
+// Updated metadata and service declarations with foregroundServiceType
 const metadataTemplate = `
+  <!-- Notification channel configuration -->
   <meta-data
     android:name="com.supersami.foregroundservice.notification_channel_name"
     android:value="Sticky Title"
@@ -19,18 +39,31 @@ const metadataTemplate = `
     android:resource="@color/blue"
   />
  
-  <service android:name="com.supersami.foregroundservice.ForegroundService"></service> // also define android:foregroundServiceType="" according to your use case
-  <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service> // also define android:foregroundServiceType="" according to your use case
+  <!-- Foreground service declaration with type -->
+  <service 
+    android:name="com.supersami.foregroundservice.ForegroundService"
+    android:foregroundServiceType="specialUse"
+    android:exported="false">
+  </service>
+  
+  <!-- Foreground service task -->
+  <service 
+    android:name="com.supersami.foregroundservice.ForegroundServiceTask"
+    android:foregroundServiceType="specialUse"
+    android:exported="false">
+  </service>
 `;
 
 const androidManifestPath = `${process.cwd()}/android/app/src/main/AndroidManifest.xml`;
 
 fs.readFile(androidManifestPath, "utf8", function (err, data) {
   if (err) {
-    return console.log(err);
+    console.error("Error reading AndroidManifest.xml:", err);
+    return;
   }
 
-  if (!data.includes(foregroundServicePermTemplate)) {
+  // Check if permissions are already defined
+  if (!data.includes("<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"")) {
     const reg = /<manifest[^>]*>/;
     const content = reg.exec(data)[0];
 
@@ -38,21 +71,40 @@ fs.readFile(androidManifestPath, "utf8", function (err, data) {
       reg,
       `${content}\n${foregroundServicePermTemplate}`
     );
+    
     fs.writeFile(androidManifestPath, result, "utf8", function (err) {
-      if (err) return console.log(err);
+      if (err) {
+        console.error("Error adding foreground service permissions:", err);
+        return;
+      }
+      console.log("✓ Added foreground service permissions to AndroidManifest.xml");
     });
+  } else {
+    console.log("✓ Foreground service permissions already exist in AndroidManifest.xml");
   }
 
-  if (!data.includes(metadataTemplate)) {
+  // Check if metadata and services are already defined
+  if (!data.includes("<service android:name=\"com.supersami.foregroundservice.ForegroundService\"")) {
     const reg = /<application[^>]*>/;
-    const content = reg.exec(data)[0];
+    const content = reg.exec(data)?.[0];
+
+    if (!content) {
+      console.error("Could not find <application> tag in AndroidManifest.xml");
+      return;
+    }
 
     const result = data.replace(reg, `${content}${metadataTemplate}`);
-    console.log({ result });
 
     fs.writeFile(androidManifestPath, result, "utf8", function (err) {
-      if (err) return console.log(err);
+      if (err) {
+        console.error("Error adding service declarations:", err);
+        return;
+      }
+      console.log("✓ Added foreground service declarations to AndroidManifest.xml");
     });
+  } else {
+    console.log("✓ Foreground service declarations already exist in AndroidManifest.xml");
+    console.log("⚠️ Note: You may need to manually update foregroundServiceType attributes for Android 14+ compatibility");
   }
 });
 
@@ -73,29 +125,45 @@ fs.mkdirSync(dirPath, { recursive: true });
 if (!fs.existsSync(colorFilePath)) {
   // Create the file with initial content if it doesn't exist
   fs.writeFileSync(colorFilePath, `<resources>${colorTemplate}</resources>`, "utf8");
-  console.log(`Successfully created color file at ${colorFilePath}`);
+  console.log(`✓ Created colors.xml file at ${colorFilePath}`);
 } else {
   // Read and update the file if it exists
   fs.readFile(colorFilePath, "utf8", function (err, data) {
     if (err) {
-      return console.error(`Error reading file: ${err}`);
+      console.error(`Error reading colors.xml file: ${err}`);
+      return;
     }
 
-    const reg = /<resources[^>]*>/;
-    const content = reg.exec(data)?.[0];
+    // Only add colors if they don't already exist
+    if (!data.includes("<item name=\"blue\" type=\"color\">#00C4D1</item>")) {
+      const reg = /<resources[^>]*>/;
+      const content = reg.exec(data)?.[0];
 
-    let result;
-    if (!content) {
-      result = `<resources>${colorTemplate}</resources>`;
-    } else {
-      result = data.replace(reg, `${content}${colorTemplate}`);
-    }
-
-    fs.writeFile(colorFilePath, result, "utf8", function (err) {
-      if (err) {
-        return console.error(`Error writing file: ${err}`);
+      let result;
+      if (!content) {
+        result = `<resources>${colorTemplate}</resources>`;
+      } else {
+        result = data.replace(reg, `${content}${colorTemplate}`);
       }
-      console.log(`Successfully updated color file at ${colorFilePath}`);
-    });
+
+      fs.writeFile(colorFilePath, result, "utf8", function (err) {
+        if (err) {
+          console.error(`Error writing to colors.xml file: ${err}`);
+          return;
+        }
+        console.log(`✓ Updated colors.xml file at ${colorFilePath}`);
+      });
+    } else {
+      console.log(`✓ Colors already defined in ${colorFilePath}`);
+    }
   });
 }
+
+// Print a small guide about foreground service types
+console.log("\n=== Foreground Service Types Guide ===");
+console.log("For Android 14+, you MUST specify foregroundServiceType in both:");
+console.log("1. The service declaration in AndroidManifest.xml");
+console.log("2. When starting the service in your JS code");
+console.log("\nThis script has added default 'specialUse' type, but you should update it");
+console.log("based on your specific use case and ensure corresponding permissions are enabled.");
+console.log("=== ============================= ===\n");

@@ -3,217 +3,303 @@ import {
   AppRegistry,
   DeviceEventEmitter,
   NativeEventEmitter,
-  Alert
+  Alert,
+  Platform,
 } from 'react-native';
 
 // ANDROID ONLY
-// Copied and adapted from https://github.com/voximplant/react-native-foreground-service
-// and https://github.com/zo0r/react-native-push-notification/
+// Foreground Service for React Native
 
 const ForegroundServiceModule = NativeModules.ForegroundService;
+const eventEmitter = new NativeEventEmitter(ForegroundServiceModule);
 
 /**
+ * @typedef {Object} NotificationConfig - Configuration for foreground service notifications
  * @property {number} id - Unique notification id
  * @property {string} title - Notification title
  * @property {string} message - Notification message
- * @property {string} ServiceType - Foreground service types are Mandatory in Android 14
- * @property {string} number - int specified as string > 0, for devices that support it, this might be used to set the badge counter
- * @property {string} icon - Small icon name | ic_notification
- * @property {string} largeIcon - Large icon name | ic_launcher
- * @property {string} visibility - private | public | secret
- * @property {boolean} ongoing - true/false if the notification is ongoing. The notification the service was started with will always be ongoing
- * @property {number} [importance] - Importance (and priority for older devices) of this notification. This might affect notification sound One of:
- *                                  none - IMPORTANCE_NONE (by default),
- *                               min - IMPORTANCE_MIN,
- *                               low - IMPORTANCE_LOW,
- *                               default - IMPORTANCE_DEFAULT
- *                               high - IMPORTANCE_HIGH,
- *                               max - IMPORTANCE_MAX
+ * @property {string} [ServiceType] - Required for Android 14+: camera, connectedDevice, dataSync, health, location,
+ *                                   mediaPlayback, mediaProjection, microphone, phoneCall, remoteMessaging,
+ *                                   shortService, specialUse, systemExempted
+ * @property {boolean} [vibration=false] - Enable vibration for the notification
+ * @property {string} [visibility='public'] - private | public | secret
+ * @property {string} [icon='ic_notification'] - Small icon name
+ * @property {string} [largeIcon='ic_launcher'] - Large icon name
+ * @property {string} [importance='max'] - none | min | low | default | high | max
+ * @property {string} [number='1'] - Badge number for the notification
+ * @property {boolean} [button=false] - Enable primary action button
+ * @property {string} [buttonText=''] - Text for primary button
+ * @property {string} [buttonOnPress='buttonOnPress'] - Event name when button is pressed
+ * @property {boolean} [button2=false] - Enable secondary action button
+ * @property {string} [button2Text=''] - Text for secondary button
+ * @property {string} [button2OnPress='button2OnPress'] - Event name when button2 is pressed
+ * @property {string} [mainOnPress='mainOnPress'] - Event name when notification is pressed
+ * @property {Object} [progress] - Progress bar configuration
+ * @property {number} progress.max - Maximum progress value
+ * @property {number} progress.curr - Current progress value
+ * @property {string} [color] - Notification color in hex format (e.g. '#FF0000')
+ * @property {boolean} [mainIntentMutable=false] - Whether the main PendingIntent should be mutable
+ * @property {boolean} [buttonMutable=false] - Whether the button PendingIntent should be mutable
+ * @property {boolean} [button2Mutable=false] - Whether the button2 PendingIntent should be mutable
  */
-const NotificationConfig = {};
 
 /**
- * @property {string} taskName - name of the js task configured with registerForegroundTask
- * @property {number} delay - start task in delay miliseconds, use 0 to start immediately
- * ... any other values passed to the task as well
+ * @typedef {Object} TaskConfig - Configuration for background tasks
+ * @property {string} taskName - Name of the JS task registered with registerForegroundTask
+ * @property {number} [delay=0] - Start task after delay in milliseconds (0 = immediate)
+ * @property {boolean} [onLoop=false] - Whether to repeat the task
+ * @property {number} [loopDelay=5000] - Delay between task executions when looping
  */
-const TaskConfig = {};
 
-class ForegroundService {
-  /**
-   * Registers a piece of JS code to be ran on the service
-   * NOTE: This must be called before anything else, or the service will fail.
-   * NOTE2: Registration must also happen at module level (not at mount)
-   * task will receive all parameters from runTask
-   * @param {task} async function to be called
-   */
-  static registerForegroundTask(taskName, task) {
-    AppRegistry.registerHeadlessTask(taskName, () => task);
-  }
+// Enable strict error checking for development
+const isDev = __DEV__;
 
-  /**
-   * Start foreground service
-   * Multiple calls won't start multiple instances of the service, but will increase its internal counter
-   * so calls to stop won't stop until it reaches 0.
-   * Note: notificationConfig can't be re-used (becomes immutable)
-   * @param {NotificationConfig} notificationConfig - Notification config
-   * @return Promise
-   */
-  static async startService(notificationConfig) {
-    console.log('Start Service Triggered');
-    return await ForegroundServiceModule.startService(notificationConfig);
-  }
+// In-memory task store
+let tasks = {};
+const DEFAULT_SAMPLING_INTERVAL = 500; // ms
+let samplingInterval = DEFAULT_SAMPLING_INTERVAL;
+let serviceRunning = false;
+let listeners = [];
 
-  /**
-   * Updates a notification of a running service. Make sure to use the same ID
-   * or it will trigger a separate notification.
-   * Note: this method might fail if called right after starting the service
-   * since the service might not be yet ready.
-   * If service is not running, it will be started automatically like calling startService.
-   * @param {NotificationConfig} notificationConfig - Notification config
-   * @return Promise
-   */
-  static async updateNotification(notificationConfig) {
-    console.log(' Update Service Triggered');
-    return await ForegroundServiceModule.updateNotification(notificationConfig);
-  }
+// Error types for better handling
+const ERROR_TYPES = {
+  INVALID_CONFIG: 'INVALID_CONFIG',
+  SERVICE_ERROR: 'SERVICE_ERROR',
+  PERMISSION_DENIED: 'PERMISSION_DENIED',
+  TASK_ERROR: 'TASK_ERROR',
+  UNSUPPORTED_PLATFORM: 'UNSUPPORTED_PLATFORM',
+};
 
-  /**
-   * Cancels/dimisses a notification given its id. Useful if the service used
-   * more than one notification
-   * @param {number} id - Notification id to cancel
-   * @return Promise
-   */
-  static async cancelNotification(id) {
-    console.log('Cancel Service Triggered');
-    return await ForegroundServiceModule.cancelNotification({id: id});
-  }
-
-  /**
-   * Stop foreground service. Note: Pending tasks might still complete.
-   * If startService will called multiple times, this needs to be called as many times.
-   * @return Promise
-   */
-  static async stopService() {
-    console.log('Stop Service Triggered');
-    return await ForegroundServiceModule.stopService();
-  }
-
-  /**
-   * Stop foreground service. Note: Pending tasks might still complete.
-   * This will stop the service regardless of how many times start was called
-   * @return Promise
-   */
-  static async stopServiceAll() {
-    return await ForegroundServiceModule.stopServiceAll();
-  }
-
-  /**
-   * Runs a previously configured headless task.
-   * Task must be able to self stop if the service is stopped, since it can't be force killed once started.
-   * Note: This method might silently fail if the service is not running, but will run successfully
-   * if the service is still spinning up.
-   * If the service is not running because it was killed, it will be attempted to be started again
-   * using the last notification available.
-   * @param {TaskConfig} taskConfig - Notification config
-   * @return Promise
-   */
-  static async runTask(taskConfig) {
-    return await ForegroundServiceModule.runTask(taskConfig);
-  }
-
-  /**
-   * Returns an integer indicating if the service is running or not.
-   * The integer represents the internal counter of how many startService
-   * calls were done without calling stopService
-   * @return Promise
-   */
-  static async isRunning() {
-    return await ForegroundServiceModule.isRunning();
-  }
-}
-
-const randHashString = len => {
+// Utility: Generate a random ID for tasks
+const generateTaskId = (len = 12) => {
   return 'x'.repeat(len).replace(/[xy]/g, c => {
     let r = (Math.random() * 16) | 0,
-      v = c == 'x' ? r : (r & 0x3) | 0x8;
+      v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 };
 
-//initial state
-let tasks = {};
-const samplingInterval = 500; //ms
-let serviceRunning = false;
-
-const deleteTask = taskId => {
-  delete tasks[taskId];
+// Utility: Validate service type for Android 14+
+const validateServiceType = (serviceType) => {
+  if (!serviceType) return false;
+  
+  const validTypes = [
+    'camera', 'connectedDevice', 'dataSync', 'health', 'location', 
+    'mediaPlayback', 'mediaProjection', 'microphone', 'phoneCall', 
+    'remoteMessaging', 'shortService', 'specialUse', 'systemExempted'
+  ];
+  
+  return validTypes.includes(serviceType);
 };
 
+// Utility: Delete a task from the store
+const deleteTask = taskId => {
+  if (tasks[taskId]) {
+    delete tasks[taskId];
+    return true;
+  }
+  return false;
+};
+
+// Task execution engine
 const taskRunner = async () => {
   try {
     if (!serviceRunning) return;
 
     const now = Date.now();
-    let promises = [];
+    const pendingTasks = [];
 
-    //iterate over all tasks
+    // Collect all tasks that are ready to execute
     Object.entries(tasks).forEach(([taskId, task]) => {
-      //check if this task's execution time has arrived
       if (now >= task.nextExecutionTime) {
-        //push this task's promise for later execution
-        promises.push(
-          Promise.resolve(task.task()).then(task.onSuccess, task.onError),
-        );
-        //if this is a looped task then increment its nextExecutionTime by delay for the next interval
-        if (task.onLoop) task.nextExecutionTime = now + task.delay;
-        //else delete the one-off task
-        else deleteTask(taskId);
+        pendingTasks.push({
+          id: taskId,
+          task: task.task,
+          onSuccess: task.onSuccess,
+          onError: task.onError,
+          onLoop: task.onLoop,
+          delay: task.delay,
+        });
+        
+        // Update nextExecutionTime for looping tasks
+        if (task.onLoop) {
+          tasks[taskId].nextExecutionTime = now + task.delay;
+        } else {
+          // Mark non-looping tasks for deletion after execution
+          tasks[taskId].shouldDelete = true;
+        }
       }
     });
 
-    //execute all tasks promises in parallel
-    await Promise.all(promises);
+    // Execute each task individually to isolate errors
+    for (const pendingTask of pendingTasks) {
+      try {
+        const result = await Promise.resolve(pendingTask.task());
+        if (typeof pendingTask.onSuccess === 'function') {
+          pendingTask.onSuccess(result);
+        }
+      } catch (error) {
+        // Handle individual task errors
+        if (typeof pendingTask.onError === 'function') {
+          pendingTask.onError(error);
+        }
+        
+        // Emit task error event
+        emitEvent('onTaskError', {
+          taskId: pendingTask.id,
+          error: error?.message || 'Unknown task error',
+        });
+        
+        if (isDev) {
+          console.warn(`[ForegroundService] Task error (${pendingTask.id}):`, error);
+        }
+      }
+    }
+    
+    // Clean up any tasks marked for deletion
+    Object.entries(tasks).forEach(([taskId, task]) => {
+      if (task.shouldDelete) {
+        deleteTask(taskId);
+      }
+    });
   } catch (error) {
-    console.log('Error in FgService taskRunner:', error);
+    // Handle errors in the taskRunner itself
+    emitEvent('onServiceError', {
+      error: error?.message || 'Unknown error in task runner',
+    });
+    
+    if (isDev) {
+      console.error('[ForegroundService] Task runner error:', error);
+    }
   }
 };
 
-const register = ({config: {alert, onServiceErrorCallBack}}) => {
+// Emit event to subscribers
+const emitEvent = (eventName, params = {}) => {
+  try {
+    DeviceEventEmitter.emit(eventName, params);
+  } catch (error) {
+    if (isDev) {
+      console.error(`[ForegroundService] Error emitting event ${eventName}:`, error);
+    }
+  }
+};
+
+// Register the task runner with React Native
+const register = ({ config }) => {
+  if (Platform.OS !== 'android') {
+    if (isDev) {
+      console.warn('[ForegroundService] This module only works on Android');
+    }
+    return;
+  }
+  
   if (!serviceRunning) {
+    const { alert, onServiceErrorCallBack } = config || {};
+    
     setupServiceErrorListener({
       alert,
       onServiceFailToStart: onServiceErrorCallBack,
     });
-    return ForegroundService.registerForegroundTask('myTaskName', taskRunner);
+    
+    // Set custom sampling interval if provided
+    if (config?.samplingInterval && typeof config.samplingInterval === 'number') {
+      samplingInterval = Math.max(100, config.samplingInterval); // Min 100ms to prevent excessive CPU usage
+    }
+    
+    return AppRegistry.registerHeadlessTask('myTaskName', () => taskRunner);
   }
 };
 
-const start = async ({
-  id,
-  title = id,
-  message = 'Foreground Service Running...',
-  ServiceType,
-  vibration = false,
-  visibility = 'public',
-  icon = 'ic_notification',
-  largeIcon = 'ic_launcher',
-  importance = 'max',
-  number = '1',
-  button = false,
-  buttonText = '',
-  buttonOnPress = 'buttonOnPress',
-  button2 = false,
-  button2Text = '',
-  button2OnPress = 'button2OnPress',
-  mainOnPress = 'mainOnPress',
-  progress,
-  color,
-  setOnlyAlertOnce,
-}) => {
+// Check and request notification permission if needed (for Android 13+)
+const ensureNotificationPermission = async () => {
+  if (Platform.OS !== 'android' || Platform.Version < 33) {
+    return true; // Permission not needed for Android < 13
+  }
+  
   try {
+    const hasPermission = await ForegroundServiceModule.hasNotificationPermission();
+    
+    if (!hasPermission) {
+      // This must be followed by a request in the app's UI using a permissions library
+      // We can't request it directly from here due to React Native limitations
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    if (isDev) {
+      console.warn('[ForegroundService] Error checking notification permission:', error);
+    }
+    return false;
+  }
+};
+
+// Start the foreground service
+const start = async (config) => {
+  if (Platform.OS !== 'android') {
+    if (isDev) {
+      console.warn('[ForegroundService] This module only works on Android');
+    }
+    return false;
+  }
+  
+  try {
+    if (!config || typeof config !== 'object') {
+      throw new Error('Invalid configuration object');
+    }
+    
+    // Extract configuration with defaults
+    const {
+      id,
+      title = id,
+      message = 'Foreground Service Running...',
+      ServiceType,
+      vibration = false,
+      visibility = 'public',
+      icon = 'ic_notification',
+      largeIcon = 'ic_launcher',
+      importance = 'max',
+      number = '1',
+      button = false,
+      buttonText = '',
+      buttonOnPress = 'buttonOnPress',
+      button2 = false,
+      button2Text = '',
+      button2OnPress = 'button2OnPress',
+      mainOnPress = 'mainOnPress',
+      progress,
+      color,
+      mainIntentMutable = false,
+      buttonMutable = false,
+      button2Mutable = false,
+    } = config;
+    
+    // Validate required parameters
+    if (!id) {
+      throw new Error('id is required');
+    }
+    
+    // Validate service type for Android 14+
+    if (Platform.Version >= 34 && !validateServiceType(ServiceType)) {
+      throw new Error(
+        `Invalid or missing ServiceType. For Android 14+, you must specify a valid type: ` +
+        `camera, connectedDevice, dataSync, health, location, mediaPlayback, mediaProjection, ` +
+        `microphone, phoneCall, remoteMessaging, shortService, specialUse, systemExempted`
+      );
+    }
+    
+    // Check notification permission for Android 13+
+    const hasPermission = await ensureNotificationPermission();
+    if (!hasPermission) {
+      throw new Error(
+        'Notification permission denied. This is required for foreground services on Android 13+.'
+      );
+    }
+    
     if (!serviceRunning) {
-      await ForegroundService.startService({
+      // Start the foreground service
+      await ForegroundServiceModule.startService({
         id,
         title,
         message,
@@ -235,45 +321,87 @@ const start = async ({
         progressBarMax: progress?.max,
         progressBarCurr: progress?.curr,
         color,
-        setOnlyAlertOnce,
+        mainIntentMutable,
+        buttonMutable,
+        button2Mutable,
       });
+      
       serviceRunning = true;
-      await ForegroundService.runTask({
+      
+      // Start the task runner
+      await ForegroundServiceModule.runTask({
         taskName: 'myTaskName',
         delay: samplingInterval,
         loopDelay: samplingInterval,
         onLoop: true,
       });
-    } else console.log('Foreground service is already running.');
+      
+      return true;
+    } else {
+      if (isDev) {
+        console.log('[ForegroundService] Service is already running');
+      }
+      return true;
+    }
   } catch (error) {
+    if (isDev) {
+      console.error('[ForegroundService] Start error:', error);
+    }
+    
+    emitEvent('onServiceError', {
+      error: error?.message || 'Unknown error starting service',
+    });
+    
     throw error;
   }
 };
 
-const update = async ({
-  id,
-  title = id,
-  message = 'Foreground Service Running...',
-  ServiceType,
-  vibration = false,
-  visibility = 'public',
-  largeIcon = 'ic_launcher',
-  icon = 'ic_launcher',
-  importance = 'max',
-  number = '0',
-  button = false,
-  buttonText = '',
-  buttonOnPress = 'buttonOnPress',
-  button2 = false,
-  button2Text = '',
-  button2OnPress = 'button2OnPress',
-  mainOnPress = 'mainOnPress',
-  progress,
-  color,
-  setOnlyAlertOnce,
-}) => {
+// Update an existing notification
+const update = async (config) => {
+  if (Platform.OS !== 'android') {
+    if (isDev) {
+      console.warn('[ForegroundService] This module only works on Android');
+    }
+    return false;
+  }
+  
   try {
-    await ForegroundService.updateNotification({
+    if (!config || typeof config !== 'object') {
+      throw new Error('Invalid configuration object');
+    }
+    
+    // Extract configuration with defaults (similar to start)
+    const {
+      id,
+      title = id,
+      message = 'Foreground Service Running...',
+      ServiceType,
+      vibration = false,
+      visibility = 'public',
+      largeIcon = 'ic_launcher',
+      icon = 'ic_launcher',
+      importance = 'max',
+      number = '0',
+      button = false,
+      buttonText = '',
+      buttonOnPress = 'buttonOnPress',
+      button2 = false,
+      button2Text = '',
+      button2OnPress = 'button2OnPress',
+      mainOnPress = 'mainOnPress',
+      progress,
+      color,
+      mainIntentMutable = false,
+      buttonMutable = false,
+      button2Mutable = false,
+    } = config;
+    
+    // Validate required parameters
+    if (!id) {
+      throw new Error('id is required');
+    }
+    
+    await ForegroundServiceModule.updateNotification({
       id,
       title,
       message,
@@ -294,124 +422,263 @@ const update = async ({
       progressBar: !!progress,
       progressBarMax: progress?.max,
       progressBarCurr: progress?.curr,
-      setOnlyAlertOnce,
       color,
+      mainIntentMutable,
+      buttonMutable,
+      button2Mutable,
     });
+    
+    // If service wasn't running, restart the task runner
     if (!serviceRunning) {
       serviceRunning = true;
-      await ForegroundService.runTask({
+      await ForegroundServiceModule.runTask({
         taskName: 'myTaskName',
         delay: samplingInterval,
         loopDelay: samplingInterval,
         onLoop: true,
       });
     }
+    
+    return true;
   } catch (error) {
+    if (isDev) {
+      console.error('[ForegroundService] Update error:', error);
+    }
+    
+    emitEvent('onServiceError', {
+      error: error?.message || 'Unknown error updating notification',
+    });
+    
     throw error;
   }
 };
 
-const stop = () => {
-  serviceRunning = false;
-  return ForegroundService.stopService();
+// Stop the foreground service (single instance)
+const stop = async () => {
+  if (Platform.OS !== 'android') return;
+  
+  try {
+    serviceRunning = false;
+    return await ForegroundServiceModule.stopService();
+  } catch (error) {
+    if (isDev) {
+      console.error('[ForegroundService] Stop error:', error);
+    }
+    throw error;
+  }
 };
-const stopAll = () => {
-  serviceRunning = false;
-  return ForegroundService.stopServiceAll();
+
+// Stop all foreground service instances
+const stopAll = async () => {
+  if (Platform.OS !== 'android') return;
+  
+  try {
+    serviceRunning = false;
+    return await ForegroundServiceModule.stopServiceAll();
+  } catch (error) {
+    if (isDev) {
+      console.error('[ForegroundService] StopAll error:', error);
+    }
+    throw error;
+  }
 };
+
+// Check if service is running
 const is_running = () => serviceRunning;
 
+// Add a task to be executed by the service
 const add_task = (
   task,
   {
     delay = 5000,
-    onLoop = true,
-    taskId = randHashString(12),
+    onLoop = false,
+    taskId = generateTaskId(),
     onSuccess = () => {},
     onError = () => {},
-  },
+  } = {}
 ) => {
-  const _type = typeof task;
-  if (_type !== 'function')
-    throw `invalid task of type ${_type}, expected a function or a Promise`;
-
-  if (!tasks[taskId])
-    tasks[taskId] = {
-      task,
-      nextExecutionTime: Date.now(),
-      delay: Math.ceil(delay / samplingInterval) * samplingInterval,
-      onLoop: onLoop,
-      taskId,
-      onSuccess,
-      onError,
-    };
-
+  // Validate task is a function
+  const taskType = typeof task;
+  if (taskType !== 'function') {
+    throw new Error(`Invalid task of type ${taskType}, expected a function or a Promise`);
+  }
+  
+  // Don't allow duplicate task IDs
+  if (tasks[taskId]) {
+    if (isDev) {
+      console.warn(`[ForegroundService] Task ID ${taskId} already exists. Overwriting.`);
+    }
+  }
+  
+  // Calculate next execution time
+  const adjustedDelay = Math.max(0, Math.ceil(delay / samplingInterval) * samplingInterval);
+  
+  // Add task to the registry
+  tasks[taskId] = {
+    task,
+    nextExecutionTime: Date.now() + adjustedDelay,
+    delay: Math.max(samplingInterval, adjustedDelay),
+    onLoop,
+    taskId,
+    onSuccess: typeof onSuccess === 'function' ? onSuccess : () => {},
+    onError: typeof onError === 'function' ? onError : () => {},
+  };
+  
   return taskId;
 };
 
+// Update an existing task
 const update_task = (
   task,
   {
     delay = 5000,
-    onLoop = true,
-    taskId = randHashString(12),
+    onLoop = false,
+    taskId,
     onSuccess = () => {},
     onError = () => {},
-  },
+  } = {}
 ) => {
-  const _type = typeof task;
-  if (_type !== 'function')
-    throw `invalid task of type ${_type}, expected a function or a Promise`;
-
+  // Require taskId for updates
+  if (!taskId) {
+    throw new Error('taskId is required to update a task');
+  }
+  
+  // Validate task is a function
+  const taskType = typeof task;
+  if (taskType !== 'function') {
+    throw new Error(`Invalid task of type ${taskType}, expected a function or a Promise`);
+  }
+  
+  // Calculate next execution time
+  const adjustedDelay = Math.max(0, Math.ceil(delay / samplingInterval) * samplingInterval);
+  
+  // Update task in the registry
   tasks[taskId] = {
     task,
-    nextExecutionTime: Date.now(),
-    delay: Math.ceil(delay / samplingInterval) * samplingInterval,
-    onLoop: onLoop,
+    nextExecutionTime: Date.now() + adjustedDelay,
+    delay: Math.max(samplingInterval, adjustedDelay),
+    onLoop,
     taskId,
-    onSuccess,
-    onError,
+    onSuccess: typeof onSuccess === 'function' ? onSuccess : () => {},
+    onError: typeof onError === 'function' ? onError : () => {},
   };
-
+  
   return taskId;
 };
 
-const remove_task = taskId => deleteTask(taskId);
+// Remove a task from execution
+const remove_task = taskId => {
+  const removed = deleteTask(taskId);
+  if (!removed && isDev) {
+    console.warn(`[ForegroundService] Task ID ${taskId} not found.`);
+  }
+  return removed;
+};
 
-const is_task_running = taskId => (tasks[taskId] ? true : false);
+// Check if a task is scheduled
+const is_task_running = taskId => !!tasks[taskId];
 
-const remove_all_tasks = () => (tasks = {});
+// Remove all scheduled tasks
+const remove_all_tasks = () => {
+  tasks = {};
+  return true;
+};
 
+// Get a specific task configuration
 const get_task = taskId => tasks[taskId];
 
-const get_all_tasks = () => tasks;
+// Get all scheduled tasks
+const get_all_tasks = () => ({ ...tasks });
 
+// Add an event listener for notification clicks
 const eventListener = callBack => {
-  let subscription = DeviceEventEmitter.addListener(
+  if (typeof callBack !== 'function') {
+    throw new Error('eventListener callback must be a function');
+  }
+  
+  const subscription = DeviceEventEmitter.addListener(
     'notificationClickHandle',
-    callBack,
+    callBack
   );
-
-  return function cleanup() {
+  
+  listeners.push(subscription);
+  
+  // Return cleanup function
+  return () => {
     subscription.remove();
+    listeners = listeners.filter(listener => listener !== subscription);
   };
 };
 
-const eventEmitter = new NativeEventEmitter(ForegroundServiceModule);
-export function setupServiceErrorListener({onServiceFailToStart, alert}) {
+// Setup error listener
+function setupServiceErrorListener({ onServiceFailToStart, alert }) {
   const listener = eventEmitter.addListener('onServiceError', message => {
-    alert && Alert.alert('Service Error', message);
-    if (onServiceFailToStart) {
-      onServiceFailToStart();
+    if (alert) {
+      Alert.alert('Service Error', message);
     }
-    stop();
+    
+    if (typeof onServiceFailToStart === 'function') {
+      onServiceFailToStart(message);
+    }
+    
+    // Auto-stop on critical errors
+    stop().catch(err => {
+      if (isDev) {
+        console.error('[ForegroundService] Error stopping service after error:', err);
+      }
+    });
   });
-
+  
+  listeners.push(listener);
+  
   return () => {
     listener.remove();
+    listeners = listeners.filter(l => l !== listener);
   };
 }
 
+// Request notification permission explicitly (for Android 13+)
+const requestNotificationPermission = async () => {
+  if (Platform.OS !== 'android' || Platform.Version < 33) {
+    return true; // Not required
+  }
+  
+  // This function is a placeholder - actual permission requesting
+  // must be done using a permissions library in the app
+  throw new Error(
+    'For Android 13+, you must manually request POST_NOTIFICATIONS permission using a permissions library. ' +
+    'Foreground Service cannot run without this permission.'
+  );
+};
+
+// Clean up resources (call before app unmounts)
+const cleanup = () => {
+  // Remove all event listeners
+  listeners.forEach(listener => {
+    try {
+      listener.remove();
+    } catch (error) {
+      if (isDev) {
+        console.warn('[ForegroundService] Error removing listener:', error);
+      }
+    }
+  });
+  
+  listeners = [];
+  
+  // Stop service if running
+  if (serviceRunning) {
+    return stopAll().catch(error => {
+      if (isDev) {
+        console.error('[ForegroundService] Error during cleanup:', error);
+      }
+    });
+  }
+  
+  return Promise.resolve();
+};
+
+// Export public API
 const ReactNativeForegroundService = {
   register,
   start,
@@ -427,6 +694,10 @@ const ReactNativeForegroundService = {
   get_task,
   get_all_tasks,
   eventListener,
+  cleanup,
+  requestNotificationPermission,
+  ERROR_TYPES,
 };
 
 export default ReactNativeForegroundService;
+export { setupServiceErrorListener };
