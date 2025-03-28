@@ -1,140 +1,127 @@
+export enum NotificationImportance {
+  NONE = 'none',
+  MIN = 'min',
+  LOW = 'low',
+  DEFAULT = 'default',
+  HIGH = 'high',
+  MAX = 'max',
+}
+
+export enum NotificationVisibility {
+  PRIVATE = 'private',
+  PUBLIC = 'public',
+  SECRET = 'secret',
+}
+
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+
+type INotificationConfig = {
+  id: number;
+  title: string;
+  message: string;
+  ServiceType: string;
+  number: string;
+  icon: string;
+  largeIcon: string;
+  visibility: NotificationVisibility;
+  ongoing: boolean;
+  importance?: NotificationImportance;
+
+  vibration?: boolean;
+  button?: boolean | undefined;
+  buttonText?: string | undefined;
+  buttonOnPress?: string | undefined;
+  button2?: boolean | undefined;
+  button2Text?: string | undefined;
+  button2OnPress?: string | undefined;
+  mainOnPress?: string | undefined;
+  progressBar?: boolean | undefined;
+  progressBarMax: number | undefined;
+  progressBarCurr: number | undefined;
+  color?: string;
+  setOnlyAlertOnce?: string;
+}
+
+
+type ITaskConfig = {
+  taskName: string;
+  delay: number;
+  loopDelay: number;
+  onLoop: boolean;
+}
+
+type ITask = {
+  nextExecutionTime: number;
+  task: () => Promise<any>;
+  onSuccess: () => void;
+  onError: (e: any) => void;
+  onLoop: boolean;
+  delay: number;
+  taskId: string;
+}
+
+type IRegisterConfig = {
+  config: {
+    alert: boolean;
+    onServiceErrorCallBack: () => void;
+  };
+};
+
+type IStartOptions = {
+  id: any;
+  title?: any;
+  message?: string | undefined;
+  ServiceType: string;
+  vibration?: boolean | undefined;
+  visibility?: NotificationVisibility;
+  icon?: string | undefined;
+  largeIcon?: string | undefined;
+  importance?: NotificationImportance;
+  number?: string | undefined;
+  button?: boolean | undefined;
+  buttonText?: string | undefined;
+  buttonOnPress?: 'buttonOnPress' | undefined;
+  button2?: boolean | undefined;
+  button2Text?: string | undefined;
+  button2OnPress?: 'button2OnPress' | undefined;
+  mainOnPress?: 'mainOnPress' | undefined;
+  progress?: {
+    max: number;
+    curr: number;
+  };
+  color?: string;
+  setOnlyAlertOnce?: string;
+};
+
+type IForegroundServiceModuleHandlers = {
+  startService: (options: INotificationConfig) => Promise<void>;
+  updateNotification: (options: INotificationConfig) => Promise<void>;
+  cancelNotification: (options: { id: number }) => Promise<void>;
+  stopService: () => Promise<void>;
+  stopServiceAll: () => Promise<void>;
+  runTask: (taskConfig: ITaskConfig) => Promise<void>;
+  isRunning: () => Promise<boolean>;
+}
+
 declare const ReactNativeForegroundService: {
-  register: ({
-    config,
-  }: {
-    config: {
-      alert: boolean;
-      onServiceErrorCallBack: () => void;
-    };
-  }) => void;
-  start: ({
-    id,
-    title,
-    message,
-    vibration,
-    visibility,
-    icon,
-    largeIcon,
-    importance,
-    number,
-    button,
-    buttonText,
-    buttonOnPress,
-    button2,
-    button2Text,
-    button2OnPress,
-    mainOnPress,
-    progress,
-    color,
-    setOnlyAlertOnce,
-  }: {
-    id: any;
-    title?: any;
-    message?: string | undefined;
-    vibration?: boolean | undefined;
-    visibility?: string | undefined;
-    icon?: string | undefined;
-    largeIcon?: string | undefined;
-    importance?: string | undefined;
-    number?: string | undefined;
-    button?: boolean | undefined;
-    buttonText?: string | undefined;
-    buttonOnPress?: string | undefined;
-    button2?: boolean | undefined;
-    button2Text?: string | undefined;
-    button2OnPress?: string | undefined;
-    mainOnPress?: string | undefined;
-    progress?: {
-      max: number;
-      curr: number;
-    };
-    color?: string;
-    setOnlyAlertOnce?: string;
-  }) => Promise<void>;
-  update: ({
-    id,
-    title,
-    message,
-    vibration,
-    visibility,
-    largeIcon,
-    icon,
-    importance,
-    number,
-    button,
-    buttonText,
-    buttonOnPress,
-    button2,
-    button2Text,
-    button2OnPress,
-    mainOnPress,
-    progress,
-    color,
-    setOnlyAlertOnce,
-  }: {
-    id: any;
-    title?: any;
-    message?: string | undefined;
-    vibration?: boolean | undefined;
-    visibility?: string | undefined;
-    largeIcon?: string | undefined;
-    icon?: string | undefined;
-    importance?: string | undefined;
-    number?: string | undefined;
-    button?: boolean | undefined;
-    buttonText?: string | undefined;
-    buttonOnPress?: string | undefined;
-    button2?: boolean | undefined;
-    button2Text?: string | undefined;
-    button2OnPress?: string | undefined;
-    mainOnPress?: string | undefined;
-    progress?: {
-      max: number;
-      curr: number;
-    };
-    color?: string;
-    setOnlyAlertOnce?: string;
-  }) => Promise<void>;
-  stop: () => Promise<any>;
+  register: (options: IRegisterConfig) => void;
+  start: (options: IStartOptions) => Promise<void>;
+  update: (options: IStartOptions) => Promise<void>;
+  pause: () => Promise<any>;
+  stop: (resetTaskNextExecutionTime?: boolean | null | undefined, taskId?: string) => Promise<any>;
   stopAll: () => Promise<any>;
   is_running: () => boolean;
-  add_task: (
-    task: any,
-    {
-      delay,
-      onLoop,
-      taskId,
-      onSuccess,
-      onError,
-    }: {
-      delay?: number | undefined;
-      onLoop?: boolean | undefined;
-      taskId?: string | undefined;
-      onSuccess?: (() => void) | undefined;
-      onError?: ((e) => void) | undefined;
-    },
-  ) => string;
-  update_task: (
-    task: any,
-    {
-      delay,
-      onLoop,
-      taskId,
-      onSuccess,
-      onError,
-    }: {
-      delay?: number | undefined;
-      onLoop?: boolean | undefined;
-      taskId?: string | undefined;
-      onSuccess?: (() => void) | undefined;
-      onError?: (() => void) | undefined;
-    },
-  ) => string;
-  remove_task: (taskId: any) => void;
-  is_task_running: (taskId: any) => boolean;
+  add_task: (task: ITask['task'], taskOptions: Prettify<Partial<Omit<ITask, 'nextExecutionTime' | 'task'>>>) => string;
+  update_task: (task: ITask['task'], taskOptions: Prettify<Partial<Omit<ITask, 'nextExecutionTime' | 'task'>>>) => string;
+  remove_task: (taskId: string) => void;
+  is_task_running: (taskId: string) => boolean;
   remove_all_tasks: () => {};
-  get_task: (taskId: any) => any;
-  get_all_tasks: () => {};
-  eventListener: (callBack: any) => () => void;
+  get_task: (taskId: string) => ITask | undefined;
+  get_all_tasks: () => { [taskId: string]: ITask };
+  eventListener: (callBack: () => any) => () => void;
 };
+
 export default ReactNativeForegroundService;
