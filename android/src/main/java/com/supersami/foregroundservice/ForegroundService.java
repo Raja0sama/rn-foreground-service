@@ -5,7 +5,7 @@ import java.io.Console;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.pm.ServiceInfo;
+import android.app.ServiceInfo;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -86,15 +86,11 @@ public class ForegroundService extends Service {
             String foregroundServiceType = notificationConfig.getString("ServiceType");
 
             Notification notification = NotificationHelper
-                    .getInstance(getApplicationContext())
-                    .buildNotification(getApplicationContext(), notificationConfig);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                int serviceType = mapServiceType(foregroundServiceType);
-                startForeground(id, notification, serviceType); //https://developer.android.com/about/versions/14/changes/fgs-types-required
-            } else {
-                startForeground(id, notification);
-            }
+                .getInstance(getApplicationContext())
+                .buildNotification(getApplicationContext(), notificationConfig);
+
+            startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
 
             running += 1;
 
