@@ -27,6 +27,7 @@ declare const ReactNativeForegroundService: {
     progress,
     color,
     setOnlyAlertOnce,
+    ongoing
   }: {
     id: any;
     title?: any;
@@ -50,6 +51,7 @@ declare const ReactNativeForegroundService: {
     };
     color?: string;
     setOnlyAlertOnce?: string;
+    ongoing?: boolean | undefined;
   }) => Promise<void>;
   update: ({
     id,
@@ -71,6 +73,7 @@ declare const ReactNativeForegroundService: {
     progress,
     color,
     setOnlyAlertOnce,
+    ongoing
   }: {
     id: any;
     title?: any;
@@ -94,6 +97,7 @@ declare const ReactNativeForegroundService: {
     };
     color?: string;
     setOnlyAlertOnce?: string;
+    ongoing?: boolean | undefined;
   }) => Promise<void>;
   stop: () => Promise<any>;
   stopAll: () => Promise<any>;
