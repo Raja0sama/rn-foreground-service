@@ -5,7 +5,6 @@ import java.io.Console;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.pm.ServiceInfo;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,8 +18,6 @@ import com.facebook.react.HeadlessJsTaskService;
 
 import static com.supersami.foregroundservice.Constants.NOTIFICATION_CONFIG;
 import static com.supersami.foregroundservice.Constants.TASK_CONFIG;
-
-
 
 // NOTE: headless task will still block the UI so don't do heavy work, but this is also good
 // since they will share the JS environment
@@ -86,25 +83,24 @@ public class ForegroundService extends Service {
             String foregroundServiceType = notificationConfig.getString("ServiceType");
 
             Notification notification = NotificationHelper
-                    .getInstance(getApplicationContext())
-                    .buildNotification(getApplicationContext(), notificationConfig);
+                .getInstance(getApplicationContext())
+                .buildNotification(getApplicationContext(), notificationConfig);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                int serviceType = mapServiceType(foregroundServiceType);
-                startForeground(id, notification, serviceType); //https://developer.android.com/about/versions/14/changes/fgs-types-required
+                // For Android 10 (API 29) and above
+                startForeground(id, notification, getServiceTypeForAndroid10(foregroundServiceType));
             } else {
+                // For older Android versions
                 startForeground(id, notification);
             }
 
             running += 1;
-
             lastNotificationConfig = notificationConfig;
-
             return true;
 
         } catch (Exception e) {
             if (reactContext != null) {
-            Log.e("ForegroundService", "Failed to start service: " + e.getMessage());
+                Log.e("ForegroundService", "Failed to start service: " + e.getMessage());
                 reactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                         .emit("onServiceError", e.getMessage());
@@ -113,35 +109,71 @@ public class ForegroundService extends Service {
         }
     }
 
+    private int getServiceTypeForAndroid10(String customServiceType) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            switch (customServiceType) {
+                case "camera":
+                    return 8; // ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+                case "connectedDevice":
+                    return 32; // ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+                case "dataSync":
+                    return 16; // ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                case "health":
+                    return 64; // ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
+                case "location":
+                    return 1; // ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                case "mediaPlayback":
+                    return 2; // ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                case "mediaProjection":
+                    return 4; // ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                case "microphone":
+                    return 128; // ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                case "phoneCall":
+                    return 256; // ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+                case "remoteMessaging":
+                    return 1024; // ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
+                case "shortService":
+                    return 2048; // ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
+                case "specialUse":
+                    return 4096; // ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                case "systemExempted":
+                    return 8192; // ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+                default:
+                    return 1; // Default to location
+            }
+        }
+        return 0; // This won't be used for Android < 10
+    }
+
     private int mapServiceType(String customServiceType) {
+        // Use direct integer constants instead of ServiceInfo constants
         switch (customServiceType) {
             case "camera":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+                return 8; // ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
             case "connectedDevice":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE;
+                return 32; // ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
             case "dataSync":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
+                return 16; // ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             case "health":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH;
+                return 64; // ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
             case "location":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
+                return 1; // ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
             case "mediaPlayback":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
+                return 2; // ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
             case "mediaProjection":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION;
+                return 4; // ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
             case "microphone":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+                return 128; // ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
             case "phoneCall":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL;
+                return 256; // ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
             case "remoteMessaging":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING;
+                return 1024; // ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
             case "shortService":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE;
+                return 2048; // ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
             case "specialUse":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+                return 4096; // ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             case "systemExempted":
-                return ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED;
-
+                return 8192; // ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
             default:
                 throw new IllegalArgumentException("Unknown foreground service type: " + customServiceType);
         }
@@ -154,7 +186,11 @@ public class ForegroundService extends Service {
         public void run() {
             final Intent service = new Intent(getApplicationContext(), ForegroundServiceTask.class);
             service.putExtras(taskConfig);
-            getApplicationContext().startService(service);
+            try {
+                getApplicationContext().startService(service);
+            } catch (Exception e) {
+                Log.e("ForegroundService", "Failed to start foreground service in loop: " + e.getMessage());
+            }
 
             int delay = (int) taskConfig.getDouble("delay");
 
@@ -180,9 +216,7 @@ public class ForegroundService extends Service {
             if (action.equals(Constants.ACTION_FOREGROUND_SERVICE_START)) {
                 if (intent.getExtras() != null && intent.getExtras().containsKey(NOTIFICATION_CONFIG)) {
                     Bundle notificationConfig = intent.getExtras().getBundle(NOTIFICATION_CONFIG);
-
                     startService(notificationConfig);
-
                 }
             }
 
@@ -194,7 +228,6 @@ public class ForegroundService extends Service {
                         Log.d("ForegroundService", "Update Notification called without a running service, trying to restart service.");
                         startService(notificationConfig);
                     } else {
-
                         try {
                             int id = (int) notificationConfig.getDouble("id");
 
@@ -206,12 +239,10 @@ public class ForegroundService extends Service {
                             mNotificationManager.notify(id, notification);
 
                             lastNotificationConfig = notificationConfig;
-
                         } catch (Exception e) {
                             Log.e("ForegroundService", "Failed to update notification: " + e.getMessage());
                         }
                     }
-
                 }
             } else if (action.equals(Constants.ACTION_FOREGROUND_RUN_TASK)) {
                 if (running <= 0 && lastNotificationConfig == null) {
@@ -219,7 +250,6 @@ public class ForegroundService extends Service {
                     stopSelf();
                     return START_NOT_STICKY;
                 } else {
-
                     // try to re-start service if it was killed
                     if (running <= 0) {
                         Log.d("ForegroundService", "Run Task called without a running service, trying to restart service.");
@@ -233,13 +263,11 @@ public class ForegroundService extends Service {
                         taskConfig = intent.getExtras().getBundle(TASK_CONFIG);
 
                         try {
-
                             if (taskConfig.getBoolean("onLoop") == true) {
                                 this.handler.post(this.runnableCode);
                             } else {
                                 this.runHeadlessTask(taskConfig);
                             }
-
                         } catch (Exception e) {
                             Log.e("ForegroundService", "Failed to start task: " + e.getMessage());
                         }
@@ -259,7 +287,6 @@ public class ForegroundService extends Service {
                     lastNotificationConfig = null;
                 }
                 return START_NOT_STICKY;
-
             } else if (action.equals(Constants.ACTION_FOREGROUND_SERVICE_STOP_ALL)) {
                 running = 0;
                 mInstance = null;
@@ -271,7 +298,6 @@ public class ForegroundService extends Service {
 
         // service to restart automatically if it's killed
         return START_REDELIVER_INTENT;
-
     }
 
     public void runHeadlessTask(Bundle bundle) {
@@ -281,15 +307,18 @@ public class ForegroundService extends Service {
         int delay = (int) bundle.getDouble("delay");
 
         if (delay <= 0) {
-            getApplicationContext().startService(service);
-
+            try {
+                getApplicationContext().startService(service);
+            } catch (Exception e) {
+                Log.e("ForegroundService", "Failed to start delayed headless task: " + e.getMessage());
+            }
             // wakelock should be released automatically by the task
             // Shouldn't be needed, it's called automatically by headless
             //HeadlessJsTaskService.acquireWakeLockNow(getApplicationContext());
         } else {
             new Handler().postDelayed(new Runnable() {
                 @Override
-                public void run() {
+            public void run() {
                     if (running <= 0) {
                         return;
                     }
@@ -301,6 +330,5 @@ public class ForegroundService extends Service {
                 }
             }, delay);
         }
-
     }
 }

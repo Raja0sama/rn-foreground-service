@@ -16,10 +16,8 @@ import android.util.Log;
 
 import com.facebook.react.R;
 
-// partially took ideas from: https://github.com/zo0r/react-native-push-notification/blob/master/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationHelper.java
-
-
 class NotificationHelper {
+    private static final String TAG = "ForegroundService";
     private static final String NOTIFICATION_CHANNEL_ID = "com.supersami.foregroundservice.channel";
 
     private static NotificationHelper instance = null;
@@ -43,10 +41,25 @@ class NotificationHelper {
         this.config = new NotificationConfig(context);
     }
 
+    // Get the appropriate PendingIntent flags based on Android version
+    private int getPendingIntentFlags(boolean isMutable) {
+        // For Android 12+, we need to explicitly specify mutability
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return isMutable ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_IMMUTABLE;
+        } 
+        // For Android 6.0+, use FLAG_UPDATE_CURRENT for compatibility
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return PendingIntent.FLAG_UPDATE_CURRENT;
+        }
+        // Fallback for older versions
+        else {
+            return 0;
+        }
+    }
 
     Notification buildNotification(Context context, Bundle bundle) {
         if (bundle == null) {
-            Log.e("NotificationHelper", "buildNotification: invalid config");
+            Log.e(TAG, "buildNotification: invalid config");
             return null;
         }
         Class mainActivityClass = getMainActivityClass(context);
@@ -54,33 +67,50 @@ class NotificationHelper {
             return null;
         }
 
-        Log.d("SuperLog",""+bundle.getString("mainOnPress"));
-
+        // Main notification intent
         Intent notificationIntent = new Intent(context, mainActivityClass);
-        notificationIntent.putExtra("mainOnPress",bundle.getString("mainOnPress"));
+        notificationIntent.putExtra("mainOnPress", bundle.getString("mainOnPress"));
         int uniqueInt1 = (int) (System.currentTimeMillis() & 0xfffffff);
 
-        // Changing FLAG_UPDATE_CURRENT to FLAG_MUTABLE for android 12 support
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, uniqueInt1, notificationIntent, PendingIntent.FLAG_MUTABLE);
+        // For the main intent we might need it to be mutable depending on the use case
+        boolean mainIntentMutable = bundle.getBoolean("mainIntentMutable", false);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            context, 
+            uniqueInt1, 
+            notificationIntent, 
+            getPendingIntentFlags(mainIntentMutable)
+        );
 
-        if(bundle.getBoolean("button", false) == true) {
-            Log.d("SuperLog C ", "inButtonOnPress" + bundle.getString("buttonOnPress"));
+        // First button intent (if enabled)
+        if (bundle.getBoolean("button", false)) {
             Intent notificationBtnIntent = new Intent(context, mainActivityClass);
             notificationBtnIntent.putExtra("buttonOnPress", bundle.getString("buttonOnPress"));
             int uniqueInt = (int) (System.currentTimeMillis() & 0xfffffff);
 
-             // Changing FLAG_UPDATE_CURRENT to FLAG_MUTABLE for android 12 support
-            pendingBtnIntent = PendingIntent.getActivity(context, uniqueInt, notificationBtnIntent, PendingIntent.FLAG_MUTABLE);
+            // Button intents are mutable if specified, immutable by default
+            boolean buttonMutable = bundle.getBoolean("buttonMutable", false);
+            pendingBtnIntent = PendingIntent.getActivity(
+                context, 
+                uniqueInt, 
+                notificationBtnIntent, 
+                getPendingIntentFlags(buttonMutable)
+            );
         }
 
-        if(bundle.getBoolean("button2", false) == true) {
-            Log.i("SuperLog C ", "inButton2OnPress" + bundle.getString("button2OnPress"));
+        // Second button intent (if enabled)
+        if (bundle.getBoolean("button2", false)) {
             Intent notificationBtn2Intent = new Intent(context, mainActivityClass);
             notificationBtn2Intent.putExtra("button2OnPress", bundle.getString("button2OnPress"));
             int uniqueInt2 = (int) (System.currentTimeMillis() & 0xfffffff);
 
-            // Changing FLAG_UPDATE_CURRENT to FLAG_MUTABLE for android 12 support
-            pendingBtn2Intent = PendingIntent.getActivity(context, uniqueInt2, notificationBtn2Intent, PendingIntent.FLAG_MUTABLE);
+            // Button intents are mutable if specified, immutable by default
+            boolean button2Mutable = bundle.getBoolean("button2Mutable", false);
+            pendingBtn2Intent = PendingIntent.getActivity(
+                context, 
+                uniqueInt2, 
+                notificationBtn2Intent, 
+                getPendingIntentFlags(button2Mutable)
+            );
         }
 
         String title = bundle.getString("title");
@@ -129,6 +159,7 @@ class NotificationHelper {
             }
         }
 
+        // Create notification channel for Android 8.0+
         checkOrCreateChannel(mNotificationManager, bundle);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
@@ -139,66 +170,86 @@ class NotificationHelper {
             .setOngoing(bundle.getBoolean("ongoing", false))
             .setContentText(bundle.getString("message"));
 
-       
-
-        if(bundle.getBoolean("button", false) == true){
-            notificationBuilder.addAction(R.drawable.redbox_top_border_background, bundle.getString("buttonText", "Button"), pendingBtnIntent);
+        // Add action buttons if configured
+        if (bundle.getBoolean("button", false)) {
+            notificationBuilder.addAction(
+                R.drawable.redbox_top_border_background, 
+                bundle.getString("buttonText", "Button"), 
+                pendingBtnIntent
+            );
         }
 
-        if(bundle.getBoolean("button2", false) == true){
-            notificationBuilder.addAction(R.drawable.redbox_top_border_background, bundle.getString("button2Text", "Button"), pendingBtn2Intent);
+        if (bundle.getBoolean("button2", false)) {
+            notificationBuilder.addAction(
+                R.drawable.redbox_top_border_background, 
+                bundle.getString("button2Text", "Button"), 
+                pendingBtn2Intent
+            );
         }
-
-
         
+        // Set notification color
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             notificationBuilder.setColor(this.config.getNotificationColor());
         }
+        
         String color = bundle.getString("color");
-        if(color != null){
-            notificationBuilder.setColor(Color.parseColor(color));
+        if (color != null) {
+            try {
+                notificationBuilder.setColor(Color.parseColor(color));
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "Invalid color format: " + color);
+            }
         }
 
+        // Use big text style for better readability
         notificationBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(bundle.getString("message")));
 
-
-        String iconName = bundle.getString("icon"); ;
-        
-        if(iconName == null){
+        // Set small icon
+        String iconName = bundle.getString("icon");
+        if (iconName == null) {
             iconName = "ic_launcher";
         }
         notificationBuilder.setSmallIcon(getResourceIdForResourceName(context, iconName));
 
-
+        // Set large icon
         String largeIconName = bundle.getString("largeIcon");
-        if(largeIconName == null){
+        if (largeIconName == null) {
             largeIconName = "ic_launcher";
         }
 
         int largeIconResId = getResourceIdForResourceName(context, largeIconName);
-        Bitmap largeIconBitmap = BitmapFactory.decodeResource(context.getResources(), largeIconResId);
-
         if (largeIconResId != 0) {
-            notificationBuilder.setLargeIcon(largeIconBitmap);
-        }
-
-        String numberString = bundle.getString("number");
-        if (numberString != null) {
-            int numberInt = Integer.parseInt(numberString);
-            if(numberInt > 0){
-                notificationBuilder.setNumber(numberInt);
+            try {
+                Bitmap largeIconBitmap = BitmapFactory.decodeResource(context.getResources(), largeIconResId);
+                notificationBuilder.setLargeIcon(largeIconBitmap);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to set large icon: " + e.getMessage());
             }
         }
 
-        Boolean progress = bundle.getBoolean("progressBar");
-        if(progress){
-            double max = bundle.getDouble("progressBarMax");
-            double curr = bundle.getDouble("progressBarCurr");
-            notificationBuilder.setProgress((int)max, (int)curr,false);
+        // Set number badge if provided
+        String numberString = bundle.getString("number");
+        if (numberString != null) {
+            try {
+                int numberInt = Integer.parseInt(numberString);
+                if (numberInt > 0) {
+                    notificationBuilder.setNumber(numberInt);
+                }
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid number format: " + numberString);
+            }
         }
 
-        notificationBuilder.setOnlyAlertOnce(true);
+        // Set progress bar if enabled
+        Boolean progress = bundle.getBoolean("progressBar");
+        if (progress) {
+            double max = bundle.getDouble("progressBarMax");
+            double curr = bundle.getDouble("progressBarCurr");
+            notificationBuilder.setProgress((int)max, (int)curr, false);
+        }
 
+        // Prevent duplicate sound/vibration when updating
+        notificationBuilder.setOnlyAlertOnce(true);
 
         return notificationBuilder.build();
     }
@@ -207,13 +258,13 @@ class NotificationHelper {
         String packageName = context.getPackageName();
         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
         if (launchIntent == null || launchIntent.getComponent() == null) {
-            Log.e("NotificationHelper", "Failed to get launch intent or component");
+            Log.e(TAG, "Failed to get launch intent or component");
             return null;
         }
         try {
             return Class.forName(launchIntent.getComponent().getClassName());
         } catch (ClassNotFoundException e) {
-            Log.e("NotificationHelper", "Failed to get main activity class");
+            Log.e(TAG, "Failed to get main activity class");
             return null;
         }
     }
@@ -265,7 +316,13 @@ class NotificationHelper {
                     importance = NotificationManager.IMPORTANCE_HIGH;
             }
         }
-        NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, this.config.getChannelName(), importance);
+        
+        NotificationChannel channel = new NotificationChannel(
+            NOTIFICATION_CHANNEL_ID, 
+            this.config.getChannelName(), 
+            importance
+        );
+        
         channel.setDescription(this.config.getChannelDescription());
         channel.enableLights(true);
         channel.enableVibration(bundle.getBoolean("vibration"));
